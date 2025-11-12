@@ -30,7 +30,7 @@
       {{-- Gambar produk --}}
       <div class="bg-gray-50 rounded-2xl border border-gray-200 p-6 flex items-center justify-center">
         <img src="{{ asset('storage/foto-produk/' . $product['img']) }}" alt="{{ $product['name'] }}"
-             class="max-h-[420px] object-contain transition-transform duration-300 hover:scale-105">
+     class="w-full max-h-[420px] object-contain ..."> 
       </div>
 
       {{-- Detail produk --}}
@@ -87,18 +87,88 @@
             Tambahkan ke Keranjang
           </button>
         </div>
+        
+        {{-- details moved below to full-width section --}}
       </div>
     </div>
   </div>
 </section>
 
+{{-- ==== DETAILS CARD (full-width) ==== --}}
+@php
+  $detailsId = $product['id'] ?? \Illuminate\Support\Str::slug($product['name'] ?? time());
+  $detailsRaw = $product['long_description'] ?? $product['description'] ?? $product['desc'] ?? '';
+  // threshold dalam karakter untuk menentukan apakah deskripsi "panjang"
+  $detailsThreshold = 420; // adjust jika perlu
+  $detailsIsLong = mb_strlen(trim($detailsRaw)) > $detailsThreshold;
+  $detailsHtml = $detailsRaw ? nl2br(e($detailsRaw)) : 'Belum ada deskripsi.';
+@endphp
+<section class="bg-gray-50 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="details-card">
+      <h2 id="details-title-{{ $detailsId }}" class="details-title">Details</h2>
+
+      <div class="details-wrapper {{ $detailsIsLong ? '' : 'expanded' }}" id="details-wrapper-{{ $detailsId }}">
+        <div class="details-body" id="details-body-{{ $detailsId }}">
+          {!! $detailsHtml !!}
+        </div>
+        @if($detailsIsLong)
+          <div class="details-fade" id="details-fade-{{ $detailsId }}"></div>
+        @endif
+      </div>
+
+      @if($detailsIsLong)
+        <button type="button" class="details-btn" id="details-toggle-{{ $detailsId }}" aria-controls="details-body-{{ $detailsId }}" aria-expanded="false">
+          <span class="details-btn-text">Lihat Lebih Banyak</span>
+          <span class="details-caret">˅</span>
+        </button>
+      @endif
+
+    </div>
+  </div>
+</section>
+
+<style>
+  .details-card{background:#fff;border:1px solid #eee;border-radius:16px;padding:28px 32px;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .details-title{font-size:28px;font-weight:700;margin:0 0 16px}
+  .details-wrapper{position:relative}
+  .details-body{color:#6b7280;line-height:1.75;max-height:120px;overflow:hidden;transition:max-height .25s ease}
+  .details-fade{content:"";position:absolute;left:0;right:0;bottom:0;height:72px;background:linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 70%)}
+  .details-btn{display:inline-flex;align-items:center;gap:.5rem;margin:18px auto 0;cursor:pointer;border:1px solid #d1d5db;border-radius:12px;padding:12px 18px;background:#fff;font-weight:600}
+  .details-btn:hover{background:#f9fafb}
+  .details-caret{display:inline-block;transition:transform .2s ease}
+  .details-wrapper.expanded .details-body{max-height:9999px}
+  .details-wrapper.expanded .details-fade{display:none}
+  .details-wrapper.expanded + .details-btn .details-caret{transform:rotate(180deg)}
+</style>
+
 <script>
   // Ambil harga dasar dalam angka
-  const basePrice = {{ $numericPrice }};
+  const basePrice = {{ isset($numericPrice) ? $numericPrice : 0 }};
   function updateTotal(days) {
     const total = basePrice * days;
-    document.getElementById('totalPrice').textContent =
-      'Rp ' + total.toLocaleString('id-ID');
+    document.getElementById('totalPrice').textContent = 'Rp ' + total.toLocaleString('id-ID');
   }
+
+  (function(){
+    const id = "{{ $detailsId }}";
+    const wrapper = document.getElementById("details-wrapper-"+id);
+    const btn = document.getElementById("details-toggle-"+id);
+    const text = btn.querySelector(".details-btn-text");
+
+    if(btn && wrapper){
+      btn.addEventListener("click", function(){
+        const expanded = wrapper.classList.toggle("expanded");
+        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        text.textContent = expanded ? "Lihat Lebih Sedikit" : "Lihat Lebih Banyak";
+      });
+    }
+  })();
 </script>
+ 
+{{-- include reviews partial --}}
+@include('products.partials.reviews', ['product' => $product])
+
+{{-- include related products --}}
+@include('products.partials.related', ['relatedProducts' => $relatedProducts ?? []])
 @endsection
