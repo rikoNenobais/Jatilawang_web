@@ -9,10 +9,62 @@ class ProductController extends Controller
     public function index()
     {
         $products = [
-            ['slug' => 'sepatu-gunung-eiger', 'name' => 'Sepatu Gunung Eiger Anaconda 2.5', 'price' => 'Rp 1.399.000', 'img' => 'https://via.placeholder.com/400x400?text=Sepatu+Gunung', 'desc' => 'Sepatu hiking dengan bahan tahan air dan sol anti slip untuk medan berat.'],
-            ['slug' => 'tenda-camping-anterlaser', 'name' => 'Tenda Camping Anterlaser (2 Orang)', 'price' => 'Rp 750.000', 'img' => 'https://via.placeholder.com/400x400?text=Tenda', 'desc' => 'Tenda ringan dengan ventilasi udara ganda dan kapasitas 2 orang.'],
-            ['slug' => 'jaket-gunung-waterproof', 'name' => 'Jaket Gunung Waterproof', 'price' => 'Rp 125.500', 'img' => 'https://via.placeholder.com/400x400?text=Jaket', 'desc' => 'Jaket tahan air dan angin, ideal untuk pendakian dan perjalanan outdoor.'],
-            ['slug' => 'sleeping-bag-adventure', 'name' => 'Sleeping Bag Adventure', 'price' => 'Rp 861.150', 'img' => 'https://via.placeholder.com/400x400?text=Sleeping+Bag', 'desc' => 'Sleeping bag dengan bahan halus dan lapisan hangat untuk suhu dingin.'],
+            [
+                'slug'  => 'sepatu-gunung-eiger-anaconda-25',
+                'name'  => 'Sepatu Gunung Eiger Anaconda 2.5',
+                'price' => 'Rp 25.000 / Hari',
+                'img'   => 'sepatu-eiger-plum.png',
+                'desc'  => 'Sepatu hiking mid cut dengan bahan tahan air dan sol anti slip untuk medan berat.'
+            ],
+            [
+                'slug'  => 'tenda-camping-antarestar',
+                'name'  => 'Tenda Camping Antarestar (2 Orang)',
+                'price' => 'Rp 35.000 / Hari',
+                'img'   => 'tenda-camping.png',
+                'desc'  => 'Tenda ringan berkapasitas 2 orang dengan ventilasi udara ganda dan bahan waterproof.'
+            ],
+            [
+                'slug'  => 'sleeping-bag-bigadventure-bunaken',
+                'name'  => 'Sleeping Bag Bigadventure Bunaken',
+                'price' => 'Rp 25.000 / Hari',
+                'img'   => 'sleeping-bag-hijau.png',
+                'desc'  => 'Sleeping bag dengan bahan halus dan lapisan hangat untuk suhu dingin pegunungan.'
+            ],
+            [
+                'slug'  => 'sandal-gunung-eiger-kinkajou',
+                'name'  => 'Sandal Gunung Eiger Kinkajou',
+                'price' => 'Rp 20.000 / Hari',
+                'img'   => 'sandal-eiger.png',
+                'desc'  => 'Sandal outdoor ringan dan nyaman dengan grip kuat untuk kegiatan hiking.'
+            ],
+            [
+                'slug'  => 'kaos-kaki-eiger-kalahari',
+                'name'  => 'Kaos Kaki Eiger Kalahari',
+                'price' => 'Rp 10.000 / Hari',
+                'img'   => 'kaos-kaki-oren.png',
+                'desc'  => 'Kaos kaki outdoor dengan bahan breathable yang cepat kering dan tahan lama.'
+            ],
+            [
+                'slug'  => 'botol-minum-eiger-selfoss',
+                'name'  => 'Botol Minum Eiger Selfoss',
+                'price' => 'Rp 15.000 / Hari',
+                'img'   => 'botol-minum-eiger.png',
+                'desc'  => 'Botol minum 1L tahan banting, cocok untuk kegiatan outdoor.'
+            ],
+            [
+                'slug'  => 'headlamp-bigadventure',
+                'name'  => 'Headlamp Big Adventure',
+                'price' => 'Rp 10.000 / Hari',
+                'img'   => 'headlamp-bigadventure.png',
+                'desc'  => 'Headlamp terang dan hemat daya, ideal untuk aktivitas malam hari.'
+            ],
+            [
+                'slug'  => 'carrier-eiger-streamline',
+                'name'  => 'Tas Gunung Streamline Eiger 40L',
+                'price' => 'Rp 35.000 / Hari',
+                'img'   => 'carrier-eiger-streamline.png',
+                'desc'  => 'Carrier berkapasitas 40L dengan bantalan punggung ergonomis dan ventilasi udara.'
+            ],
         ];
 
         return view('products.index', compact('products'));
@@ -20,28 +72,66 @@ class ProductController extends Controller
 
     public function show($slug)
     {
-        // Pakai daftar NAMA yang SAMA persis seperti di index.blade.php
+        // Data produk dengan gambar dari storage/foto-produk
         $products = [
-            ['name'=>'Sepatu Gunung Eiger Anaconda 2.5','price'=>'Rp 1.399.000','img'=>'https://via.placeholder.com/600x600?text=Sepatu+Gunung','desc'=>'Sepatu hiking dengan bahan tahan air dan sol anti slip untuk medan berat.'],
-            ['name'=>'Tenda Camping Anterlaser (2 Orang)','price'=>'Rp 750.000','img'=>'https://via.placeholder.com/600x600?text=Tenda','desc'=>'Tenda ringan dengan ventilasi udara ganda dan kapasitas 2 orang.'],
-            ['name'=>'Jaket Gunung Waterproof','price'=>'Rp 125.500','img'=>'https://via.placeholder.com/600x600?text=Jaket','desc'=>'Jaket tahan air dan angin, ideal untuk pendakian dan perjalanan outdoor.'],
-            ['name'=>'Sleeping Bag Adventure','price'=>'Rp 861.150','img'=>'https://via.placeholder.com/600x600?text=Sleeping+Bag','desc'=>'Sleeping bag hangat untuk malam dingin.'],
-            ['name'=>'Carrier Eiger Streamline 45L','price'=>'Rp 849.000','img'=>'https://via.placeholder.com/600x600?text=Tas+Gunung','desc'=>'Carrier 45L nyaman untuk trekking menengah.'],
-            ['name'=>'Headlamp Sunrei MUYE 3','price'=>'Rp 750.000','img'=>'https://via.placeholder.com/600x600?text=Headlamp','desc'=>'Headlamp terang dan hemat daya untuk malam hari.'],
-            ['name'=>'Celana Gunung Cargo Outdoor','price'=>'Rp 185.000','img'=>'https://via.placeholder.com/600x600?text=Celana+Outdoor','desc'=>'Celana outdoor ringan, cepat kering, banyak kantong.'],
-            ['name'=>'Botol Minum Adventure 1L','price'=>'Rp 152.000','img'=>'https://via.placeholder.com/600x600?text=Botol+Minum','desc'=>'Botol 1L tahan banting, cocok untuk hiking harian.'],
+            [
+                'name'  => 'Sepatu Gunung Eiger Anaconda 2.5',
+                'price' => 'Rp 25.000 / Hari',
+                'img'   => 'sepatu-eiger-plum.png',
+                'desc'  => 'Sepatu hiking mid cut dengan bahan tahan air dan sol anti slip untuk medan berat.'
+            ],
+            [
+                'name'  => 'Tenda Camping Antarestar (2 Orang)',
+                'price' => 'Rp 35.000 / Hari',
+                'img'   => 'tenda-camping.png',
+                'desc'  => 'Tenda ringan berkapasitas 2 orang dengan ventilasi udara ganda dan bahan waterproof.'
+            ],
+            [
+                'name'  => 'Sleeping Bag Bigadventure Bunaken',
+                'price' => 'Rp 25.000 / Hari',
+                'img'   => 'sleeping-bag-hijau.png',
+                'desc'  => 'Sleeping bag dengan bahan halus dan lapisan hangat untuk suhu dingin pegunungan.'
+            ],
+            [
+                'name'  => 'Sandal Gunung Eiger Kinkajou',
+                'price' => 'Rp 20.000 / Hari',
+                'img'   => 'sandal-eiger.png',
+                'desc'  => 'Sandal outdoor ringan dan nyaman dengan grip kuat untuk kegiatan hiking.'
+            ],
+            [
+                'name'  => 'Kaos Kaki Eiger Kalahari',
+                'price' => 'Rp 10.000 / Hari',
+                'img'   => 'kaos-kaki-oren.png',
+                'desc'  => 'Kaos kaki outdoor dengan bahan breathable yang cepat kering dan tahan lama.'
+            ],
+            [
+                'name'  => 'Botol Minum Eiger Selfoss',
+                'price' => 'Rp 15.000 / Hari',
+                'img'   => 'botol-minum-eiger.png',
+                'desc'  => 'Botol minum 1L tahan banting, cocok untuk kegiatan outdoor.'
+            ],
+            [
+                'name'  => 'Headlamp Big Adventure',
+                'price' => 'Rp 10.000 / Hari',
+                'img'   => 'headlamp-bigadventure.png',
+                'desc'  => 'Headlamp terang dan hemat daya, ideal untuk aktivitas malam hari.'
+            ],
+            [
+                'name'  => 'Tas Gunung Streamline Eiger 40L',
+                'price' => 'Rp 35.000 / Hari',
+                'img'   => 'carrier-eiger-streamline.png',
+                'desc'  => 'Carrier berkapasitas 40L dengan bantalan punggung ergonomis dan ventilasi udara.'
+            ],
         ];
 
-        // Cari produk dgn slug nama yang cocok
-        $product = collect($products)->first(function ($p) use ($slug) {
-            return Str::slug($p['name']) === $slug;
-        });
+        // Temukan produk berdasarkan slug
+        $product = collect($products)->first(fn($p) => Str::slug($p['name']) === $slug);
 
-        if (!$product) {
-            abort(404);
-        }
+        abort_if(!$product, 404);
+
+        // Tambahkan URL gambar agar bisa langsung digunakan di view
+        $product['img_url'] = asset('storage/foto-produk/' . $product['img']);
 
         return view('products.show', compact('product'));
     }
-
 }
