@@ -21,9 +21,6 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Katalog & detail produk (publik bisa lihat)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{item_id}', [ProductController::class, 'show'])->name('products.show');
-// Reviews API (frontend uses AJAX)
-Route::get('/products/{productKey}/reviews', [\App\Http\Controllers\ProductReviewController::class, 'index'])->name('products.reviews.index');
-Route::post('/products/{productKey}/reviews', [\App\Http\Controllers\ProductReviewController::class, 'store'])->middleware('auth')->name('products.reviews.store');
 
 // Keranjang (boleh guest; simpan di session)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
