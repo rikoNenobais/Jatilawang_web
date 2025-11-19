@@ -134,7 +134,7 @@
         </p>
 
         {{-- Tombol detail pakai item_id --}}
-        <a href="{{ route('products.show', ['slug' => $item->item_id]) }}"
+        <a href="{{ route('products.show', $item->item_id) }}"
         class="mt-auto inline-block w-full bg-emerald-900 text-white font-semibold text-[13px] py-2.5 rounded-lg
             hover:bg-emerald-800 transition-all duration-200">
           Lihat Detail
@@ -145,80 +145,7 @@
         <div class="col-span-full text-center text-gray-500 py-12">Belum ada produk tersedia.</div>
       @endforelse
 
-        {{-- CARD PRODUK (disamakan dengan home) --}}
-        <div
-        class="group relative bg-white border border-gray-200 rounded-2xl shadow-sm
-                transition-all duration-300 ease-out overflow-hidden flex flex-col
-                will-change-transform
-
-                hover:-translate-y-1
-                hover:shadow-lg
-                hover:ring-2 hover:ring-emerald-600 hover:ring-offset-4 hover:ring-offset-white
-                hover:border-transparent
-        ">
-        {{-- Icon Love --}}
-        <div class="absolute top-4 right-4">
-            @if($p['fav'])
-                <button type="button"
-                    class="flex items-center justify-center w-9 h-9 rounded-full bg-white/90 text-red-500 shadow-sm ring-1 ring-gray-200 hover:text-red-600 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
-                                2 6.5 3.5 5 5.5 5
-                                c1.54 0 3.04.99 3.57 2.36h1.87
-                                C13.46 5.99 14.96 5 16.5 5
-                                18.5 5 20 6.5 20 8.5
-                                c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            @else
-                <button type="button"
-                    class="flex items-center justify-center w-9 h-9 rounded-full bg-white/90 text-gray-400 shadow-sm ring-1 ring-gray-200 hover:text-red-500 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5
-                                -1.935 0-3.681 1.126-4.312 2.732
-                                -0.631-1.606-2.377-2.732-4.313-2.732
-                                -2.588 0-4.687 2.015-4.687 4.5
-                                0 7.22 9 11.25 9 11.25s9-4.03 9-11.25z"/>
-                    </svg>
-                </button>
-            @endif
-        </div>
-
-
-
-
-        {{-- Gambar produk --}}
-        <div class="relative w-full aspect-[4/3] grid place-items-center bg-white">
-            <img src="{{ asset($p['img']) }}" alt="{{ $p['name'] }}"
-                class="max-h-[180px] md:max-h-[220px] object-contain transition-transform duration-300 group-hover:scale-105">
-        </div>
-
-        {{-- Nama + Harga + Tombol --}}
-        <div class="p-5 flex flex-col flex-1 text-center font-sans">
-            {{-- Nama produk (max 2 baris) --}}
-            <h3 class="text-gray-800 font-medium text-[13px] md:text-[14px] leading-[1.35] mb-2
-                        line-clamp-2 min-h-[2.7rem]"
-                title="{{ $p['name'] }}"
-                style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-                {{ $p['name'] }}
-            </h3>
-
-           {{--Harga --}}
-            <p class="text-emerald-800 font-extrabold text-[16px] md:text-[17px] mb-3">
-                {{ $p['price'] }}
-            </p>
-
-            {{-- Tombol --}}
-            <a href="{{ route('products.show', ['slug' => Str::slug($p['name'])]) }}"
-            class="mt-auto inline-block w-full bg-emerald-900 text-white font-semibold text-[13px] py-2.5 rounded-lg
-                    hover:bg-emerald-800 transition-all duration-200">
-                Lihat Detail
-            </a>
-        </div>
-        </div>
-        @endforeach
+        {{-- end demo card removed (was using undefined $p) --}}
 
     </div>
 

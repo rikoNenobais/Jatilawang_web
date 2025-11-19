@@ -242,7 +242,7 @@
                             <p class="text-emerald-800 font-extrabold text-[16px] md:text-[17px] mb-3">
                                 Rp{{ number_format($item->rental_price_per_day ?? 0, 0, ',', '.') }}
                             </p>
-                            <a href="{{ route('products.show', ['item_id' => $item->item_id]) }}" class="mt-auto inline-block w-full bg-emerald-900 text-white font-semibold text-[13px] py-2.5 rounded-lg hover:bg-emerald-800 transition-all duration-200">
+                            <a href="{{ route('products.show', $item->item_id) }}" class="mt-auto inline-block w-full bg-emerald-900 text-white font-semibold text-[13px] py-2.5 rounded-lg hover:bg-emerald-800 transition-all duration-200">
                                 Lihat Detail
                             </a>
                         </div>

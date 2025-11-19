@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Models\Item;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
     // KEY session untuk cart
-    private const SESSION_KEY = 'cart.items'; // bentuk: [product_id => qty]
+    private const SESSION_KEY = 'cart.items'; // bentuk: [item_id => qty]
 
     /**
      * Tampilkan isi keranjang (dari session).
@@ -16,20 +16,20 @@ class CartController extends Controller
     public function index()
     {
         $items = collect(session(self::SESSION_KEY, [])); // [id => qty]
-        $products = Product::whereIn('id', $items->keys())
+        $dbItems = Item::whereIn('item_id', $items->keys())
             ->get()
-            ->keyBy('id');
+            ->keyBy('item_id');
 
         // susun baris yang siap dipakai di view
-        $rows = $items->map(function ($qty, $productId) use ($products) {
-            $p = $products->get($productId);
+        $rows = $items->map(function ($qty, $itemId) use ($dbItems) {
+            $p = $dbItems->get($itemId);
             if (!$p) return null;
 
             return [
                 'product' => $p,
                 'qty'     => (int) $qty,
-                'price'   => (int) $p->price,              // asumsikan kolom price di products
-                'total'   => (int) $p->price * (int) $qty,
+                'price'   => (int) ($p->rental_price_per_day ?? 0),
+                'total'   => (int) ($p->rental_price_per_day ?? 0) * (int) $qty,
             ];
         })->filter(); // buang null bila ada id yang tidak ditemukan
 
@@ -47,13 +47,13 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
+            'item_id' => ['required', 'exists:items,item_id'],
             'qty'        => ['nullable', 'integer', 'min:1'],
         ]);
         $qty = (int) ($data['qty'] ?? 1);
 
         $items = collect(session(self::SESSION_KEY, []));
-        $items[$data['product_id']] = ($items[$data['product_id']] ?? 0) + $qty;
+        $items[$data['item_id']] = ($items[$data['item_id']] ?? 0) + $qty;
 
         session([self::SESSION_KEY => $items->toArray()]);
 
@@ -64,15 +64,15 @@ class CartController extends Controller
      * Ubah jumlah (qty) item tertentu.
      * Route: PATCH /cart/{product}
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Item $item)
     {
         $qty = (int) $request->validate([
             'qty' => ['required', 'integer', 'min:1'],
         ])['qty'];
 
         $items = collect(session(self::SESSION_KEY, []));
-        if ($items->has($product->id)) {
-            $items[$product->id] = $qty;
+        if ($items->has($item->item_id)) {
+            $items[$item->item_id] = $qty;
             session([self::SESSION_KEY => $items->toArray()]);
         }
 
@@ -83,10 +83,10 @@ class CartController extends Controller
      * Hapus satu item dari keranjang.
      * Route: DELETE /cart/{product}
      */
-    public function destroy(Product $product)
+    public function destroy(Item $item)
     {
         $items = collect(session(self::SESSION_KEY, []));
-        $items->forget($product->id);
+        $items->forget($item->item_id);
         session([self::SESSION_KEY => $items->toArray()]);
 
         return back()->with('success', 'Produk dihapus dari keranjang.');
