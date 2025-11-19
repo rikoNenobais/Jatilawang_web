@@ -104,6 +104,7 @@
 
         </div>
     </div>
+  </div>
 </section>
 
 {{-- DETAILS CARD (full-width) --}}
