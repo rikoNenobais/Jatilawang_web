@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
@@ -21,6 +22,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Katalog & detail produk (publik bisa lihat)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{item_id}', [ProductController::class, 'show'])->name('products.show');
+
+// Product reviews endpoints (used by product detail AJAX)
+Route::get('/products/{productKey}/reviews', [ProductReviewController::class, 'index'])->name('products.reviews.index');
+Route::post('/products/{productKey}/reviews', [ProductReviewController::class, 'store'])->middleware('auth')->name('products.reviews.store');
 
 // Keranjang (boleh guest; simpan di session)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
