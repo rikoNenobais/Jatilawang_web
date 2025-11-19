@@ -36,11 +36,11 @@
           <form method="POST" action="{{ route('login') }}" class="space-y-6" novalidate>
             @csrf
 
-            {{-- Email --}}
+            {{-- Email atau Username --}}
             <div>
-              <label for="email" class="block text-sm font-medium text-emerald-900 mb-1">Email</label>
-              <input id="email" name="email" type="email" autocomplete="email" required
-                     placeholder="Masukkan email anda"
+              <label for="email" class="block text-sm font-medium text-emerald-900 mb-1">Email atau Username</label>
+              <input id="email" name="email" type="text" autocomplete="username" required
+                     placeholder="Masukkan email atau username Anda"
                      value="{{ old('email') }}"
                      class="mt-1 block w-full rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 text-[15px] text-emerald-900
                             placeholder:text-emerald-650 outline-none transition-all duration-200

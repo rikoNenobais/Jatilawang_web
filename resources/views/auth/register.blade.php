@@ -36,16 +36,16 @@
           <form action="{{ route('register') }}" method="POST" novalidate class="space-y-6">
             @csrf
 
-            {{-- Nama --}}
+            {{-- Nama Lengkap --}}
             <div>
-              <label for="name" class="block text-sm font-medium text-emerald-900 mb-1">Nama Lengkap</label>
-              <input id="name" name="name" type="text" required
+              <label for="full_name" class="block text-sm font-medium text-emerald-900 mb-1">Nama Lengkap</label>
+              <input id="full_name" name="full_name" type="text" required
                      placeholder="Masukkan nama lengkap Anda"
-                     value="{{ old('name') }}"
+                     value="{{ old('full_name') }}"
                      class="mt-1 block w-full rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 text-[15px] text-emerald-900
                             placeholder:text-emerald-650 outline-none transition-all duration-200
                             hover:border-emerald-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 focus:shadow-md focus:shadow-emerald-100">
-              @error('name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+              @error('full_name') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             {{-- Email --}}
@@ -73,6 +73,52 @@
                         class="absolute inset-y-0 right-0 grid w-10 place-items-center text-emerald-700/60 hover:text-emerald-800 transition">👁</button>
               </div>
               @error('password') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Konfirmasi Password --}}
+            <div>
+              <label for="password_confirmation" class="block text-sm font-medium text-emerald-900 mb-1">Konfirmasi Password</label>
+              <input id="password_confirmation" name="password_confirmation" type="password" required
+                     placeholder="Ulangi password Anda"
+                     class="mt-1 block w-full rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 text-[15px] text-emerald-900
+                            placeholder:text-emerald-650 outline-none transition-all duration-200
+                            hover:border-emerald-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 focus:shadow-md focus:shadow-emerald-100">
+              @error('password_confirmation') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Username --}}
+            <div>
+              <label for="username" class="block text-sm font-medium text-emerald-900 mb-1">Username</label>
+              <input id="username" name="username" type="text" required
+                     placeholder="Masukkan username Anda"
+                     value="{{ old('username') }}"
+                     class="mt-1 block w-full rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 text-[15px] text-emerald-900
+                            placeholder:text-emerald-650 outline-none transition-all duration-200
+                            hover:border-emerald-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 focus:shadow-md focus:shadow-emerald-100">
+              @error('username') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Nomor Telepon --}}
+            <div>
+              <label for="phone_number" class="block text-sm font-medium text-emerald-900 mb-1">Nomor Telepon</label>
+              <input id="phone_number" name="phone_number" type="text"
+                     placeholder="Masukkan nomor telepon Anda"
+                     value="{{ old('phone_number') }}"
+                     class="mt-1 block w-full rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 text-[15px] text-emerald-900
+                            placeholder:text-emerald-650 outline-none transition-all duration-200
+                            hover:border-emerald-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 focus:shadow-md focus:shadow-emerald-100">
+              @error('phone_number') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Alamat --}}
+            <div>
+              <label for="address" class="block text-sm font-medium text-emerald-900 mb-1">Alamat</label>
+              <textarea id="address" name="address" rows="3"
+                        placeholder="Masukkan alamat Anda"
+                        class="mt-1 block w-full rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 text-[15px] text-emerald-900
+                               placeholder:text-emerald-650 outline-none transition-all duration-200
+                               hover:border-emerald-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 focus:shadow-md focus:shadow-emerald-100">{{ old('address') }}</textarea>
+              @error('address') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
             {{-- Checkbox Persetujuan --}}

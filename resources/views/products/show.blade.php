@@ -89,7 +89,15 @@
                         Favorit
                     </button>
 
-                    <button class="w-full sm:w-48 bg-emerald-900 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition">Tambahkan ke Keranjang</button>
+                    {{-- Form Tambah ke Keranjang --}}
+                    <form method="POST" action="{{ route('cart.store') }}" class="w-full sm:w-48">
+                        @csrf
+                        <input type="hidden" name="item_id" value="{{ $product['id'] ?? '' }}">
+                        <input type="hidden" name="qty" id="selectedQty" value="1">
+                        <button type="submit" class="w-full bg-emerald-900 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition">
+                            Tambahkan ke Keranjang
+                        </button>
+                    </form>
                 </div>
 
                 {{-- Stock badge (optional) --}}

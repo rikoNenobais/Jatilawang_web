@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
@@ -42,11 +41,6 @@ Route::get('/auth/redirect/{provider}', fn () => abort(501))->name('social.redir
  *  AUTHENTICATED ROUTES
  * -------------------------
  */
-
-// Dashboard setelah login (hanya user terverifikasi)
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
 
 // Checkout (WAJIB login). Jika belum login, Laravel redirect ke /login dan balik lagi ke /checkout setelah sukses.
 Route::middleware('auth')->group(function () {

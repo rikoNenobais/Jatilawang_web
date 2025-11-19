@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Add this import for authentication checks
 
 class CartController extends Controller
 {
@@ -46,6 +47,11 @@ class CartController extends Controller
      */
     public function store(Request $request)
     {
+        // Ensure the user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Silakan login untuk menambahkan produk ke keranjang.');
+        }
+
         $data = $request->validate([
             'item_id' => ['required', 'exists:items,item_id'],
             'qty'        => ['nullable', 'integer', 'min:1'],

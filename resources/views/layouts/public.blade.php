@@ -84,7 +84,7 @@
         </a>
 
         {{-- Account --}}
-        <a href="{{ auth()->check() ? url('/dashboard') : url('/login') }}"
+        <a href="{{ auth()->check() ? url('/') : url('/login') }}"
             class="text-gray-900 hover:opacity-80" aria-label="Account">
             <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

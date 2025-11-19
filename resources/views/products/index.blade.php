@@ -139,6 +139,16 @@
             hover:bg-emerald-800 transition-all duration-200">
           Lihat Detail
         </a>
+
+        {{-- Tombol Tambah ke Keranjang --}}
+        <form method="POST" action="{{ route('cart.store') }}" class="mt-2">
+          @csrf
+          <input type="hidden" name="item_id" value="{{ $item->item_id }}">
+          <button type="submit" class="mt-auto inline-block w-full bg-emerald-600 text-white font-semibold text-[13px] py-2.5 rounded-lg
+              hover:bg-emerald-500 transition-all duration-200">
+            Tambah ke Keranjang
+          </button>
+        </form>
       </div>
       </div>
       @empty
