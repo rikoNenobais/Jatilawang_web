@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rentals', function (Blueprint $table) {
-            $table->bigIncrements('rental_id')->primary(); 
+            $table->id('rental_id')->primary(); 
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->date('rental_start_date');
             $table->date('rental_end_date');

@@ -12,13 +12,10 @@
     <!-- Favicon utama -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('storage/logo/logo-jatilawang.png') }}?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('storage/logo/logo-jatilawang.png') }}?v=2">
-    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}?v=2"> {{-- jika punya versi .ico --}}
-
-    <!-- (opsional) Apple/Safari -->
+    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}?v=2">
     <link rel="apple-touch-icon" href="{{ asset('images/apple-touch-icon.png') }}?v=2">
     <meta name="theme-color" content="#065f46">
     @stack('head')
-
 </head>
 <body style="font-family:sans-serif; background:white; color:#111;">
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-100">
@@ -33,7 +30,6 @@
         <form action="{{ url('/products') }}" method="get" class="hidden md:block flex-1">
         <label class="relative block">
             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
-            {{-- icon search --}}
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M21 21l-5.2-5.2M17 10A7 7 0 103 10a7 7 0 0014 0z" />
@@ -50,10 +46,9 @@
         {{-- Nav --}}
         @php
         $nav = [
-            ['label'=>'Home','href'=>url('/') , 'active'=>request()->routeIs('home')],
-            ['label'=>'About','href'=>'#' , 'active'=>false],
-            ['label'=>'Contact Us','href'=>'#' , 'active'=>false],
-            ['label'=>'Blog','href'=>'#' , 'active'=>false],
+            ['label'=>'Beranda','href'=>url('/'), 'active'=>request()->routeIs('home')],
+            ['label' => 'Produk',   'href' => route('products.index'), 'active' => request()->routeIs('products.*')],
+            ['label'=>'Kontak','href'=>url('https://wa.link/nv8lik') , 'active'=>false],
         ];
         @endphp
         <nav class="hidden lg:flex items-center gap-8">
@@ -67,24 +62,27 @@
 
         {{-- Icons --}}
         <div class="ml-auto flex items-center gap-6">
-        {{-- Wishlist --}}
-        <a href="{{ url('/wishlist') }}" class="text-gray-900 hover:opacity-80" aria-label="Wishlist">
-            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    d="M21 8.5c0-2.2-1.8-4-4-4-1.6 0-3 .9-3.6 2.4A4 4 0 006 4.5c-2.2 0-4 1.8-4 4 0 6.3 10 10.5 10 10.5S21 14.8 21 8.5z"/>
-            </svg>
-        </a>
 
-        {{-- Cart --}}
-        <a href="{{ url('/cart') }}" class="text-gray-900 hover:opacity-80" aria-label="Cart">
-            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
-            </svg>
-        </a>
+        {{-- CART – HANYA BISA DIKLIK KALAU SUDAH LOGIN --}}
+        @auth
+            <a href="{{ route('cart.index') }}" class="relative text-gray-900 hover:opacity-80 transition" aria-label="Keranjang">
+                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+                </svg>
+                {{-- Badge jumlah item di keranjang --}}
+            </a>
+        @else
+            <button type="button" onclick="goToLoginWithRedirect()" class="text-gray-900 hover:opacity-80 cursor-pointer transition" aria-label="Keranjang (Login dulu)">
+                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+                </svg>
+            </button>
+        @endauth
 
         {{-- Account --}}
-        <a href="{{ auth()->check() ? url('/') : url('/login') }}"
+        <a href="{{ auth()->check() ? route('home') : route('login') }}"
             class="text-gray-900 hover:opacity-80" aria-label="Account">
             <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -100,6 +98,25 @@
     </main>
 
     @include('components.footer')
+
+    {{-- SCRIPT BIAR KALAU BELUM LOGIN KLIK KERANJANG LANGSUNG KE LOGIN + KEMBALI KE KERANJANG SETELAH LOGIN --}}
+    <script>
+        function goToLoginWithRedirect() {
+            const redirectTo = '/cart';
+            window.location.href = "{{ route('login') }}?redirect=" + encodeURIComponent(redirectTo);
+        }
+    </script>
+
+    {{-- KALAU MAU SETELAH LOGIN OTOMATIS BALIK KE KERANJANG, TAMBAHKAN INI DI LoginController (method authenticated) --}}
+    {{-- 
+    protected function authenticated(Request $request, $user)
+    {
+        if ($request->has('redirect')) {
+            return redirect($request->get('redirect'));
+        }
+        return redirect()->intended(route('home'));
+    }
+    --}}
 
 </body>
 </html>

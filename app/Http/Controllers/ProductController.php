@@ -7,61 +7,76 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil semua item dari database sebagai katalog
-        $items = Item::all();
-        return view('products.index', ['items' => $items]);
+        $items = $this->applyFiltersAndSorting($request);
+
+        $categoryCounts = Item::selectRaw('category, count(*) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category');
+
+        return view('products.index', compact('items', 'categoryCounts'));
+    }
+
+
+    private function applyFiltersAndSorting(Request $request)
+    {
+        $query = Item::query();
+
+        // SEARCH
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('item_name', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+                });
+        }
+
+        // FILTER KATEGORI
+        if ($request->has('categories') && is_array($request->categories)) {
+            $query->whereIn('category', $request->categories);
+        }
+
+        // REKOMENDASI
+        if ($request->has('recommended')) {
+            $query->where('is_rentable', true)
+                  ->orderByDesc('rental_stock');
+        }
+
+        // SORTING — SEMUA DI SINI, MUDAH DITAMBAH!
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest':
+                    $query->latest('created_at');
+                    break;
+                case 'price_low':
+                    $query->orderByRaw('COALESCE(rental_price_per_day, 999999999) ASC');
+                    break;
+                case 'price_high':
+                    $query->orderByRaw('COALESCE(rental_price_per_day, 0) DESC');
+                    break;
+                case 'name_asc':
+                    $query->orderBy('item_name', 'asc');
+                    break;
+                case 'name_desc':
+                    $query->orderBy('item_name', 'desc');
+                    break;
+                case 'popular':
+                    $query->orderByDesc('rental_stock'); // nanti bisa diganti total_order
+                    break;
+                default:
+                    $query->latest();
+                    break;
+            }
+        } else {
+            $query->latest(); // default
+        }
+
+        return $query->paginate(20)->withQueryString();
     }
 
     public function show($item_id)
     {
-        // Ambil item berdasarkan item_id
-        $item = Item::where('item_id', $item_id)->firstOrFail();
-
-        // convert to array structure used by the Blade view (compat with previous in-memory arrays)
-        $product = [
-            'id' => $item->item_id,
-            'slug' => (string) $item->item_id,
-            'name' => $item->item_name,
-            'price' => 'Rp ' . number_format($item->rental_price_per_day ?? 0, 0, ',', '.') . ' / Hari',
-            'numeric_price' => (int) ($item->rental_price_per_day ?? 0),
-            'img' => basename($item->url_image ?? ''),
-            'img_url' => $item->url_image ?? null,
-            'desc' => $item->description ?? '',
-            'material' => $item->material ?? null,
-            'stock' => $item->rental_stock ?? 0,
-            'category' => $item->category ?? null,
-        ];
-
-        // related products from DB by same category (fallback random if category null)
-        if ($product['category']) {
-            $related = Item::where('category', $product['category'])
-                ->where('item_id', '!=', $item->item_id)
-                ->limit(4)
-                ->get();
-        } else {
-            $related = Item::where('item_id', '!=', $item->item_id)
-                ->inRandomOrder()
-                ->limit(4)
-                ->get();
-        }
-
-        $relatedProducts = $related->map(function($it){
-            return [
-                'id' => $it->item_id,
-                'slug' => (string) $it->item_id,
-                'name' => $it->item_name,
-                'price' => 'Rp ' . number_format($it->rental_price_per_day ?? 0, 0, ',', '.') . ' / Hari',
-                'img' => basename($it->url_image ?? ''),
-                'img_url' => $it->url_image ?? null,
-                'category' => $it->category ?? null,
-            ];
-        })->toArray();
-
-        return view('products.show', [
-            'product' => $product,
-            'relatedProducts' => $relatedProducts,
-        ]);
+        $item = Item::findOrFail($item_id);
+        return view('products.show', compact('item'));
     }
 }
