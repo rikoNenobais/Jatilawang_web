@@ -7,6 +7,30 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    // ================== HOMEPAGE (3 TAB PRODUK) ==================
+public function home()
+{
+    // 1. Terbaru — 8 produk terbaru
+    $latest = Item::latest()->take(8)->get();
+
+    // // 2. BESTSELLER — paling banyak disewa + dibeli (fix GROUP BY, pasti jalan!)
+    // $bestseller = Item::select('items.*')
+    //     ->leftJoin('detail_rentals', 'items.item_id', '=', 'detail_rentals.item_id')
+    //     ->leftJoin('detail_buys', 'items.item_id', '=', 'detail_buys.item_id')
+    //     ->selectRaw('items.*, 
+    //         COALESCE(SUM(detail_rentals.quantity), 0) + COALESCE(SUM(detail_buys.quantity), 0) AS total_sold')
+    //     ->groupBy('items.item_id')
+    //     ->orderByDesc('total_sold')
+    //     ->take(8)
+    //     ->get();
+
+    // 3. REKOMENDASI : random aja dari semua item
+    $recommended = Item::inRandomOrder()->take(8)->get();
+
+    // return view('home', compact('latest', 'bestseller', 'recommended'));
+    return view('home', compact('latest', 'recommended'));
+}
+    // ================== DAFTAR PRODUK ==================
     public function index(Request $request)
     {
         $items = $this->applyFiltersAndSorting($request);
@@ -18,65 +42,52 @@ class ProductController extends Controller
         return view('products.index', compact('items', 'categoryCounts'));
     }
 
+    // ================== DETAIL PRODUK ==================
+    public function show($item_name)
+    {
+        // Cari berdasarkan kolom item_id (bukan id!)
+        $item = Item::where('item_name', $item_name)->firstOrFail();
 
+        // Produk terkait: kategori sama + item_id beda
+        $relatedProducts = Item::where('category', $item->category)
+                            ->where('item_id', '!=', $item->item_id)
+                            ->inRandomOrder()
+                            ->take(6)
+                            ->get();
+
+        return view('products.show', compact('item', 'relatedProducts', 'item_name'));
+    }
+
+    // ================== FILTER & SORTING (PRIVATE) ==================
     private function applyFiltersAndSorting(Request $request)
     {
         $query = Item::query();
 
-        // SEARCH
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('item_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('description', 'like', '%' . $request->search . '%');
-                });
+                $q->where('item_name', 'like', "%{$request->search}%")
+                  ->orWhere('description', 'like', "%{$request->search}%");
+            });
         }
 
-        // FILTER KATEGORI
         if ($request->has('categories') && is_array($request->categories)) {
             $query->whereIn('category', $request->categories);
         }
 
-        // REKOMENDASI
-        if ($request->has('recommended')) {
-            $query->where('is_rentable', true)
-                  ->orderByDesc('rental_stock');
-        }
-
-        // SORTING — SEMUA DI SINI, MUDAH DITAMBAH!
         if ($request->filled('sort')) {
-            switch ($request->sort) {
-                case 'latest':
-                    $query->latest('created_at');
-                    break;
-                case 'price_low':
-                    $query->orderByRaw('COALESCE(rental_price_per_day, 999999999) ASC');
-                    break;
-                case 'price_high':
-                    $query->orderByRaw('COALESCE(rental_price_per_day, 0) DESC');
-                    break;
-                case 'name_asc':
-                    $query->orderBy('item_name', 'asc');
-                    break;
-                case 'name_desc':
-                    $query->orderBy('item_name', 'desc');
-                    break;
-                case 'popular':
-                    $query->orderByDesc('rental_stock'); // nanti bisa diganti total_order
-                    break;
-                default:
-                    $query->latest();
-                    break;
-            }
+            match ($request->sort) {
+                'latest'     => $query->latest('created_at'),
+                'price_low'  => $query->orderByRaw('COALESCE(rental_price_per_day, 999999999) ASC'),
+                'price_high' => $query->orderByRaw('COALESCE(rental_price_per_day, 0) DESC'),
+                'name_asc'   => $query->orderBy('item_name', 'asc'),
+                'name_desc'  => $query->orderBy('item_name', 'desc'),
+                'popular'    => $query->orderByDesc('rental_stock'),
+                default      => $query->latest(),
+            };
         } else {
-            $query->latest(); // default
+            $query->latest();
         }
 
         return $query->paginate(20)->withQueryString();
-    }
-
-    public function show($item_id)
-    {
-        $item = Item::findOrFail($item_id);
-        return view('products.show', compact('item'));
     }
 }

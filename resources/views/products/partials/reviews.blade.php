@@ -1,4 +1,4 @@
-<div id="product-reviews" class="mt-10" data-product-key="{{ $product['slug'] ?? ($product['id'] ?? \Illuminate\Support\Str::slug($product['name'])) }}">
+<div id="product-reviews" class="mt-10" data-product-key="{{ $item->item_id }}">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="bg-white rounded-lg p-6 border">
       <div id="reviews-summary" class="mb-6">

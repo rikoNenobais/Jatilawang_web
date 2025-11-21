@@ -59,12 +59,50 @@
   const CKEY = "keujak_cart"; // localStorage key
 
   function idr(n){ return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0); }
-  function getCart(){ try{ return JSON.parse(localStorage.getItem(CKEY)) || []; }catch{ return []; } }
+
+  function normalizeNumber(value){
+    const num = typeof value === 'string' ? value.replace(/[^0-9.-]/g,'') : value;
+    return Number(num) || 0;
+  }
+
+  function normalizeCartShape(raw){
+    if (Array.isArray(raw)){
+      return raw.map(item => ({
+        id: item.id,
+        name: item.name || '',
+        qty: Math.max(1, Number(item.qty ?? item.quantity) || 1),
+        price: normalizeNumber(item.price),
+        image: item.image || '',
+        sku: item.sku || ''
+      }));
+    }
+    if (raw && typeof raw === 'object'){
+      return Object.entries(raw).map(([id,item]) => ({
+        id,
+        name: item.name || '',
+        qty: Math.max(1, Number(item.qty ?? item.quantity) || 1),
+        price: normalizeNumber(item.price),
+        image: item.image || '',
+        sku: item.sku || ''
+      }));
+    }
+    return [];
+  }
+
+  function getCart(){
+    try{
+      const parsed = JSON.parse(localStorage.getItem(CKEY));
+      const normalized = normalizeCartShape(parsed || []);
+      if(parsed && !Array.isArray(parsed)) saveCart(normalized);
+      return normalized;
+    }catch{ return []; }
+  }
   function saveCart(items){ localStorage.setItem(CKEY, JSON.stringify(items)); }
   function updateBadge(){
     const count = getCart().reduce((a,b)=>a + b.qty, 0);
-    const el = document.querySelector('[data-cart-badge]');
-    if(el) el.textContent = count;
+    document.querySelectorAll('[data-cart-badge]').forEach(el => {
+      el.textContent = count;
+    });
   }
 
   /** ---------- UI RENDER ---------- **/
@@ -100,7 +138,7 @@
             <input class="inp-qty" type="text" value="${item.qty}" inputmode="numeric" />
             <button class="btn-inc" aria-label="Tambah">+</button>
           </div>
-          <div class="ci-price">${idr(item.price * item.qty)}</div>
+          <div class="ci-price">${idr(normalizeNumber(item.price) * item.qty)}</div>
           <button class="ci-remove" title="Hapus">×</button>
         </div>
       </div>
@@ -116,7 +154,7 @@
     });
 
     // totals
-    const subtotal = cart.reduce((s,i)=> s + (i.price * i.qty), 0);
+    const subtotal = cart.reduce((s,i)=> s + (normalizeNumber(i.price) * i.qty), 0);
     const ship     = shippingFee(subtotal);
     elSubtotal.textContent = idr(subtotal);
     elShipping.textContent = idr(ship);

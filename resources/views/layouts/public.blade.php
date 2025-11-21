@@ -63,23 +63,31 @@
         {{-- Icons --}}
         <div class="ml-auto flex items-center gap-6">
 
-        {{-- CART – HANYA BISA DIKLIK KALAU SUDAH LOGIN --}}
-        @auth
-            <a href="{{ route('cart.index') }}" class="relative text-gray-900 hover:opacity-80 transition" aria-label="Keranjang">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                          d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
-                </svg>
-                {{-- Badge jumlah item di keranjang --}}
-            </a>
-        @else
-            <button type="button" onclick="goToLoginWithRedirect()" class="text-gray-900 hover:opacity-80 cursor-pointer transition" aria-label="Keranjang (Login dulu)">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                          d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
-                </svg>
-            </button>
-        @endauth
+{{-- CART – hanya bisa diakses kalau sudah login --}}
+@auth
+    <a href="{{ route('cart.index') }}" class="relative text-gray-900 hover:opacity-80 transition" aria-label="Keranjang">
+        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+        </svg>
+
+        {{-- Badge jumlah item --}}
+        <span data-cart-badge class="absolute -top-2 -right-2 min-w-[20px] min-h-[20px] px-1 rounded-full bg-emerald-700 text-white text-xs font-semibold text-center">
+            0
+        </span>
+    </a>
+@else
+    <button type="button" onclick="goToLoginWithRedirect()" class="relative text-gray-900 hover:opacity-80 cursor-pointer transition" aria-label="Keranjang (Login dulu)">
+        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2z"/>
+        </svg>
+
+        <span data-cart-badge class="absolute -top-2 -right-2 min-w-[20px] min-h-[20px] px-1 rounded-full bg-gray-400 text-white text-xs font-semibold text-center">
+            0
+        </span>
+    </button>
+@endauth
 
         {{-- Account --}}
         <a href="{{ auth()->check() ? route('home') : route('login') }}"
@@ -99,6 +107,114 @@
 
     @include('components.footer')
 
+    <!-- Script keranjang frontend -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const CART_KEY = 'keujak_cart';
+
+            function normalizeNumber(value) {
+                const num = typeof value === 'string' ? value.replace(/[^0-9.-]/g, '') : value;
+                return Number(num) || 0;
+            }
+
+            function normalizeCartShape(raw) {
+                if (Array.isArray(raw)) {
+                    return raw.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        qty: Math.max(1, Number(item.qty ?? item.quantity) || 1),
+                        price: normalizeNumber(item.price),
+                        image: item.image || '',
+                        sku: item.sku || ''
+                    }));
+                }
+
+                if (raw && typeof raw === 'object') {
+                    return Object.entries(raw).map(([id, item]) => ({
+                        id,
+                        name: item.name || '',
+                        qty: Math.max(1, Number(item.qty ?? item.quantity) || 1),
+                        price: normalizeNumber(item.price),
+                        image: item.image || '',
+                        sku: item.sku || ''
+                    }));
+                }
+
+                return [];
+            }
+
+            function getCart() {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(CART_KEY));
+                    const normalized = normalizeCartShape(parsed || []);
+                    // Simpan kembali jika sebelumnya bukan array
+                    if (parsed && !Array.isArray(parsed)) {
+                        saveCart(normalized);
+                    }
+                    return normalized;
+                } catch {
+                    return [];
+                }
+            }
+
+            function saveCart(items) {
+                localStorage.setItem(CART_KEY, JSON.stringify(items));
+            }
+
+            function updateCartBadge(items = null) {
+                const cart = items ?? getCart();
+                const totalItems = cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+                document.querySelectorAll('[data-cart-badge]').forEach(el => {
+                    el.textContent = totalItems;
+                });
+            }
+
+            function addToCart(payload) {
+                const cart = getCart();
+                const existing = cart.find(item => String(item.id) === String(payload.id));
+
+                if (existing) {
+                    existing.qty += payload.qty;
+                } else {
+                    cart.push({
+                        id: payload.id,
+                        name: payload.name,
+                        qty: payload.qty,
+                        price: payload.price,
+                        image: payload.image,
+                        sku: payload.sku || ''
+                    });
+                }
+
+                saveCart(cart);
+                updateCartBadge(cart);
+            }
+
+            document.body.addEventListener('click', function (event) {
+                const button = event.target.closest('.add-to-cart');
+                if (!button) return;
+
+                const quantityTarget = button.dataset.quantityTarget;
+                const qtySource = quantityTarget ? document.querySelector(quantityTarget) : null;
+                const qty = qtySource ? Number(qtySource.value) : Number(button.dataset.quantity);
+
+                const payload = {
+                    id: button.dataset.id,
+                    name: button.dataset.name,
+                    qty: Math.max(1, qty || 1),
+                    price: normalizeNumber(button.dataset.price),
+                    image: button.dataset.image || '',
+                    sku: button.dataset.sku || ''
+                };
+
+                addToCart(payload);
+                alert(`${payload.name} telah ditambahkan ke keranjang!`);
+            });
+
+            updateCartBadge();
+        });
+    </script>
+
     {{-- SCRIPT BIAR KALAU BELUM LOGIN KLIK KERANJANG LANGSUNG KE LOGIN + KEMBALI KE KERANJANG SETELAH LOGIN --}}
     <script>
         function goToLoginWithRedirect() {
@@ -117,6 +233,5 @@
         return redirect()->intended(route('home'));
     }
     --}}
-
 </body>
 </html>

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('url_image', 255)->nullable();
             $table->decimal('rental_price_per_day', 10, 0)->nullable();
             $table->decimal('sale_price', 10, 0)->nullable();
-            $table->unsignedTinyInteger('rental_stock')->default(0); // NUMBER(3)
+            $table->unsignedTinyInteger('rental_stock')->default(0); 
             $table->unsignedTinyInteger('sale_stock')->default(0);
             $table->decimal('penalty_per_days', 10, 2)->default(0);
             $table->boolean('is_rentable')->default(true);

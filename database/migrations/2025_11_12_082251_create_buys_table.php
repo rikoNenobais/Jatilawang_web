@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('buys', function (Blueprint $table) {
-            $table->bigIncrements('buy_id')->primary();
+            $table->id('buy_id')->primary();
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->timestamp('order_date')->useCurrent();
             $table->decimal('total_price', 10, 2)->nullable();
