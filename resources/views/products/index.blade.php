@@ -17,7 +17,7 @@
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7M3 12h18"/>
               </svg>
-              Home
+              Beranda
             </a>
           </li>
           <li class="mx-1">/</li>
@@ -25,7 +25,7 @@
         </ol>
       </nav>
 
-      {{-- SORTING SUDAH HIDUP 100% --}}
+      {{-- SORTING --}}
       <div class="flex items-center gap-3">
         <span class="text-sm text-gray-600 hidden sm:block">Urut berdasarkan:</span>
         <form method="GET" action="{{ route('products.index') }}" class="inline">
@@ -37,19 +37,25 @@
             <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Nama: A → Z</option>
             <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Nama: Z → A</option>
           </select>
-          {{-- Hidden inputs biar filter lain tetap ikut --}}
-          @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
+
+          {{-- Hidden inputs agar filter lain ikut saat sort berubah --}}
+          @if(request('search')) 
+            <input type="hidden" name="search" value="{{ request('search') }}"> 
+          @endif
           @if(request('categories'))
             @foreach(request('categories') as $cat)
               <input type="hidden" name="categories[]" value="{{ $cat }}">
             @endforeach
           @endif
-          @if(request('recommended')) <input type="hidden" name="recommended" value="1"> @endif
+          @if(request('recommended')) 
+            <input type="hidden" name="recommended" value="1"> 
+          @endif
         </form>
       </div>
     </div>
 
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
       {{-- SIDEBAR FILTER --}}
       <aside class="lg:col-span-3">
         <form method="GET" action="{{ route('products.index') }}" id="filterForm">
@@ -113,47 +119,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
 
           @forelse ($items as $item)
-            <div class="group relative bg-white border border-gray-200 rounded-2xl shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-2 hover:ring-emerald-600 hover:ring-offset-4 overflow-hidden flex flex-col">
-
-              {{-- Gambar --}}
-              <div class="relative w-full aspect-[4/3] bg-gray-50 flex items-center justify-center p-4">
-                <img src="{{ $item->url_image ?? asset('storage/foto-produk/default.png') }}"
-                     alt="{{ $item->item_name }}"
-                     class="max-h-48 object-contain group-hover:scale-105 transition-transform duration-300">
-              </div>
-
-              {{-- Konten --}}
-              <div class="p-5 flex flex-col flex-1 text-center">
-                <h3 class="text-gray-800 font-medium text-sm leading-tight line-clamp-2 mb-2">
-                  {{ $item->item_name }}
-                </h3>
-
-                <p class="text-emerald-800 font-extrabold text-lg mb-4">
-                  Rp{{ number_format($item->rental_price_per_day ?? 0, 0, ',', '.') }} <span class="text-xs font-normal text-gray-600">/hari</span>
-                </p>
-
-                {{-- Tombol Detail --}}
-                <a href="{{ route('products.show', $item->item_id) }}"
-                   class="w-full bg-emerald-900 text-white font-semibold text-sm py-2.5 rounded-lg hover:bg-emerald-800 transition mb-2">
-                  Lihat Detail
-                </a>
-
-                {{-- Tombol Keranjang --}}
-                @auth
-                  <form method="POST" action="{{ route('cart.store') }}">
-                    @csrf
-                    <input type="hidden" name="item_id" value="{{ $item->item_id }}">
-                    <button type="submit" class="w-full bg-emerald-600 text-white font-semibold text-sm py-2.5 rounded-lg hover:bg-emerald-700 transition">
-                      + Keranjang
-                    </button>
-                  </form>
-                @else
-                  <button onclick="goToLoginWithRedirect()" class="w-full bg-emerald-600 text-white font-semibold text-sm py-2.5 rounded-lg hover:bg-emerald-700 transition">
-                    + Keranjang (Login Dulu)
-                  </button>
-                @endauth
-              </div>
-            </div>
+            <x-product-card :item="$item" />
           @empty
             <div class="col-span-full text-center py-16 text-gray-500 text-lg">
               Tidak ada produk yang sesuai dengan filter.
@@ -161,69 +127,11 @@
           @endforelse
         </div>
 
-        {{-- Pagination Laravel (otomatis bawa semua query string) --}}
+        {{-- Pagination --}}
         <div class="mt-10">
           {{ $items->appends(request()->query())->links() }}
         </div>
       </div>
-<<<<<<< HEAD
-=======
-
-      {{-- Gambar produk --}}
-      <div class="relative w-full aspect-[4/3] grid place-items-center bg-white">
-        <img src="{{ $item->url_image ?? asset('storage/foto-produk/default.png') }}" alt="{{ $item->item_name }}"
-          class="max-h-[180px] md:max-h-[220px] object-contain transition-transform duration-300 group-hover:scale-105">
-      </div>
-
-      {{-- Nama + Harga + Tombol --}}
-      @php
-        $rawImage = $item->url_image;
-        $imageUrl = $rawImage
-        ? (Str::startsWith($rawImage, ['http://', 'https://']) ? $rawImage : asset($rawImage))
-        : asset('storage/foto-produk/default.png');
-      @endphp
-      <div class="p-5 flex flex-col flex-1 text-center font-sans">
-        {{-- Nama produk (max 2 baris) --}}
-        <h3 class="text-gray-800 font-medium text-[13px] md:text-[14px] leading-[1.35] mb-2
-              line-clamp-2 min-h-[2.7rem]"
-          title="{{ $item->item_name }}"
-          style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-          {{ $item->item_name }}
-        </h3>
-
-         {{--Harga --}}
-        <p class="text-emerald-800 font-extrabold text-[16px] md:text-[17px] mb-3">
-          Rp{{ number_format($item->rental_price_per_day ?? 0, 0, ',', '.') }}
-        </p>
-
-        {{-- Tombol detail pakai item_id --}}
-        <a href="{{ route('products.show', $item->item_id) }}"
-        class="mt-auto inline-block w-full bg-emerald-900 text-white font-semibold text-[13px] py-2.5 rounded-lg
-            hover:bg-emerald-800 transition-all duration-200">
-          Lihat Detail
-        </a>
-
-        {{-- Tombol Tambah ke Keranjang (langsung ke localStorage) --}}
-        <button type="button"
-          class="mt-2 inline-block w-full bg-emerald-600 text-white font-semibold text-[13px] py-2.5 rounded-lg
-          hover:bg-emerald-500 transition-all duration-200 add-to-cart"
-          data-id="{{ $item->item_id }}"
-          data-name="{{ $item->item_name }}"
-          data-price="{{ $item->rental_price_per_day ?? 0 }}"
-          data-image="{{ $imageUrl }}"
-          data-sku="{{ $item->item_code ?? $item->item_id }}"
-          data-quantity="1">
-          Tambah ke Keranjang
-        </button>
-      </div>
-      </div>
-      @empty
-        <div class="col-span-full text-center text-gray-500 py-12">Belum ada produk tersedia.</div>
-      @endforelse
-
-        {{-- end demo card removed (was using undefined $p) --}}
-
->>>>>>> origin/Briflyy
     </div>
   </div>
 </section>

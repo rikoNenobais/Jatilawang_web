@@ -16,11 +16,11 @@ use App\Http\Controllers\CheckoutController;
  */
 
 // Landing page (halaman depan seperti mockup)
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [ProductController::class, 'home'])->name('home');
 
 // Katalog & detail produk (publik bisa lihat)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/products/{item_id}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/products/{item_name}', [ProductController::class, 'show'])->name('products.show');
 
 // Product reviews endpoints (used by product detail AJAX)
 Route::get('/products/{productKey}/reviews', [ProductReviewController::class, 'index'])->name('products.reviews.index');
