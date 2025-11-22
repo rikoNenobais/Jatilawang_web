@@ -22,9 +22,9 @@
             <div class="lg:col-span-2">
                 <h3 class="text-white font-bold text-lg mb-6">Informasi</h3>
                 <ul class="space-y-4 text-gray-400 text-sm">
-                    <li><a href="#" class="hover:text-white transition">Cara sewa</a></li>
-                    <li><a href="#" class="hover:text-white transition">Cara pengembalian</a></li>
-                    <li><a href="#" class="hover:text-white transition">Syarat dan Ketentuan</a></li>
+                    <li><a href="{{ route('cara-sewa') }}" class="hover:text-white transition">Cara sewa</a></li>
+                    <li><a href="{{ route('cara-pengembalian') }}" class="hover:text-white transition">Cara pengembalian</a></li>
+                    <li><a href="{{ route('syarat-ketentuan') }}" class="hover:text-white transition">Syarat dan Ketentuan</a></li>
                 </ul>
             </div>
 
@@ -32,7 +32,7 @@
             <div class="lg:col-span-3">
                 <h3 class="text-white font-bold text-lg mb-6">Tentang Jatilawang</h3>
                 <ul class="space-y-4 text-gray-400 text-sm">
-                    <li><a href="#" class="hover:text-white transition">Tentang Kami</a></li>
+                    <li><a href="{{ route('tentang-kami') }}" class="hover:text-white transition">Tentang Kami</a></li>
                 </ul>
             </div>
 
@@ -41,7 +41,7 @@
                 <h3 class="text-white font-bold text-lg mb-6">Layanan Bantuan</h3>
                 <ul class="space-y-6 text-sm">
 
-                    <li><a href="#" class="text-gray-400 hover:text-white transition">Kontak Kami</a></li>
+                    <li><a href="{{route('kontak')  }}" class="text-gray-400 hover:text-white transition">Kontak Kami</a></li>
 
                     <!-- Alamat -->
                     <li class="flex gap-4 items-start">

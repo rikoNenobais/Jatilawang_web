@@ -48,7 +48,7 @@
         $nav = [
             ['label'=>'Beranda','href'=>url('/'), 'active'=>request()->routeIs('home')],
             ['label' => 'Produk',   'href' => route('products.index'), 'active' => request()->routeIs('products.*')],
-            ['label'=>'Kontak','href'=>url('https://wa.link/nv8lik') , 'active'=>false],
+            ['label'=>'Kontak','href'=>route('kontak') , 'active' => request()->routeIs('kontak')],
         ];
         @endphp
         <nav class="hidden lg:flex items-center gap-8">

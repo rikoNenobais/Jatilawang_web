@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Daftar - Jatilawang Adventure</title>
   <meta name="description" content="Bergabung dengan Jatilawang Adventure dan temukan perlengkapan terbaik untuk petualanganmu." />
-
+<link rel="icon" href="{{ asset('storage/logo/logo-jatilawang.png') }}" type="image/png">
   @vite(['resources/css/app.css','resources/js/app.js'])
 
   <!-- Fonts -->
@@ -124,7 +124,7 @@
             {{-- Checkbox Persetujuan --}}
             <label class="flex items-center gap-2 text-sm">
               <input type="checkbox" class="rounded border-neutral-300 text-emerald-600 focus:ring-emerald-600" required>
-              <span class="text-emerald-800">Saya setuju dengan <a href="#" class="underline hover:text-emerald-700">syarat & ketentuan</a></span>
+              <span class="text-emerald-800">Saya setuju dengan <a href="{{ route('syarat-ketentuan') }}" class="underline hover:text-emerald-700">syarat & ketentuan</a></span>
             </label>
 
             {{-- Tombol Daftar --}}

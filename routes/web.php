@@ -35,6 +35,13 @@ Route::delete('/cart/{product}', [CartController::class, 'destroy'])->name('cart
 // OAuth (placeholder)
 Route::get('/auth/redirect/{provider}', fn () => abort(501))->name('social.redirect');
 
+// Footer
+Route::view('/cara-sewa', 'cara-sewa')->name('cara-sewa');
+Route::view('/cara-pengembalian', 'cara-pengembalian')->name('cara-pengembalian');
+Route::view('/tentang-kami', 'tentang-kami')->name('tentang-kami');
+Route::view('/syarat-ketentuan', 's&k')->name('syarat-ketentuan');
+Route::view('/kontak', 'kontak')->name('kontak');
+
 
 /**
  * -------------------------

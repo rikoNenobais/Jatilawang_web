@@ -19,7 +19,7 @@
 
     {{-- Gambar --}}
     <a href="{{ route('products.show', $item->item_id) }}" class="block">
-        <div class="relative w-full aspect-[4/3] grid place-items-center bg-white overflow-hidden">
+        <div class="relative w-full aspect-4/3 grid place-items-center bg-white overflow-hidden">
             <img src="{{ $item->url_image ?? asset('storage/foto-produk/default.png') }}"
                  alt="{{ $item->item_name ?? 'Produk' }}"
                  class="max-h-[200px] md:max-h-[220px] object-contain transition-transform duration-300 group-hover:scale-105">
