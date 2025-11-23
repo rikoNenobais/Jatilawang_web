@@ -60,6 +60,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/verify', [ProfileController::class, 'verify'])->name('profile.verify');
     Route::get('/profile/edit-form', [ProfileController::class, 'showEditForm'])->name('profile.edit.form');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // routes/web.php - Ubah bagian ini:
+    Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password'); // Ganti nama route
+    Route::put('/profile/change-password', [ProfileController::class, 'updatePassword'])->name('profile.password.update'); // Ganti nama route
 });
 
 

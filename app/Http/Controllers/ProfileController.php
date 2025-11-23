@@ -30,7 +30,7 @@ class ProfileController extends Controller
         session(['profile_edit_allowed' => true]);
         
         // Debug: log session
-        \Log::info('Profile edit allowed - Session set for user: ' . $user->user_id);
+        \Illuminate\Support\Facades\Log::info('Profile edit allowed - Session set for user: ' . $user->user_id);
 
         // Redirect ke form edit - PASTIKAN route name benar
         return redirect()->route('profile.edit.form');
@@ -38,15 +38,15 @@ class ProfileController extends Controller
 
     public function showEditForm()
     {
-        \Log::info('Accessing showEditForm - Session data:', session()->all());
+        \Illuminate\Support\Facades\Log::info('Accessing showEditForm - Session data:', session()->all());
         
         if (!session('profile_edit_allowed')) {
-            \Log::warning('Profile edit not allowed - redirecting to profile.edit');
+            \Illuminate\Support\Facades\Log::warning('Profile edit not allowed - redirecting to profile.edit');
             return redirect()->route('profile.edit')->withErrors(['password' => 'Silakan verifikasi kata sandi terlebih dahulu']);
         }
 
         $user = Auth::user();
-        \Log::info('Showing edit form for user: ' . $user->user_id);
+        \Illuminate\Support\Facades\Log::info('Showing edit form for user: ' . $user->user_id);
         return view('profile.update', compact('user'));
     }
 
@@ -56,6 +56,7 @@ class ProfileController extends Controller
             return redirect()->route('profile.edit')->withErrors(['password' => 'Sesi edit telah berakhir. Silakan verifikasi ulang.']);
         }
 
+        /** @var User $user */
         $user = Auth::user();
 
         $validated = $request->validate([
@@ -72,5 +73,35 @@ class ProfileController extends Controller
         session()->forget('profile_edit_allowed');
 
         return redirect()->route('profile.edit')->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    // Tampilkan form ubah password
+    public function showChangePasswordForm()
+    {
+        return view('profile.change-password');
+    }
+
+    // Proses update password
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+         /** @var User $user */
+        $user = Auth::user();
+
+        // Cek password lama
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini tidak valid.']);
+        }
+
+        // Update password baru
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return redirect()->route('profile.edit')->with('success', 'Password berhasil diubah!');
     }
 }
