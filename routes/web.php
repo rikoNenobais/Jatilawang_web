@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
@@ -50,21 +49,24 @@ Route::view('/kontak', 'public.kontak')->name('kontak');
  * -------------------------
  */
 
-// Checkout (WAJIB login). Jika belum login, Laravel redirect ke /login dan balik lagi ke /checkout setelah sukses.
+// Checkout (WAJIB login). Jika belum login, Laravel redirect ke /login 
 Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
 
-    // routes/web.php
+    // prifil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/verify', [ProfileController::class, 'verify'])->name('profile.verify');
     Route::get('/profile/edit-form', [ProfileController::class, 'showEditForm'])->name('profile.edit.form');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    // routes/web.php - Ubah bagian ini:
-    Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password'); // Ganti nama route
-    Route::put('/profile/change-password', [ProfileController::class, 'updatePassword'])->name('profile.password.update'); // Ganti nama route
+    // profile ganti pass
+    Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password'); 
+    Route::put('/profile/change-password', [ProfileController::class, 'updatePassword'])->name('profile.password.update'); 
+    //keranjang
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+    Route::patch('/cart/{cart_item}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cart_item}', [CartController::class, 'destroy'])->name('cart.destroy');
 });
-
-
 
 require __DIR__.'/auth.php';

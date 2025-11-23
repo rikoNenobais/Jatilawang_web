@@ -32,8 +32,10 @@
           <select name="sort" onchange="this.form.submit()"
                   class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 cursor-pointer">
             <option value="latest" {{ request('sort') == 'latest' || !request('sort') ? 'selected' : '' }}>Terbaru</option>
-            <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Harga: Rendah → Tinggi</option>
-            <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Harga: Tinggi → Rendah</option>
+            <option value="price_low_rent" {{ request('sort') == 'price_low_rent' ? 'selected' : '' }}>Harga: Rendah → Tinggi (Sewa)</option>
+            <option value="price_high_rent" {{ request('sort') == 'price_high_rent' ? 'selected' : '' }}>Harga: Tinggi → Rendah (Sewa)</option>
+            <option value="price_low_buy" {{ request('sort') == 'price_low_buy' ? 'selected' : '' }}>Harga: Rendah → Tinggi (Beli)</option>
+            <option value="price_high_buy" {{ request('sort') == 'price_high_buy' ? 'selected' : '' }}>Harga: Tinggi → Rendah (Beli)</option>
             <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Nama: A → Z</option>
             <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Nama: Z → A</option>
           </select>
@@ -73,12 +75,30 @@
             </div>
 
             {{-- Rekomendasi --}}
-            <div class="mb-6">
+            <div class="mb-3">
               <label class="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" name="recommended" value="1" {{ request('recommended') ? 'checked' : '' }}
                        onchange="this.form.submit()" class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600">
                 <span class="text-sm font-medium text-gray-700">Rekomendasi</span>
               </label>
+            </div>
+
+            {{-- Sewa --}}
+            <div class="mb-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="sewa" value="1" {{ request('sewa') ? 'checked' : '' }}
+                          onchange="this.form.submit()" class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600">
+                    <span class="text-sm font-medium text-gray-700">Bisa disewa</span>
+                </label>
+            </div>
+
+            {{-- Beli --}}
+            <div class="mb-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="beli" value="1" {{ request('beli') ? 'checked' : '' }}
+                          onchange="this.form.submit()" class="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600">
+                    <span class="text-sm font-medium text-gray-700">Bisa dibeli</span>
+                </label>
             </div>
 
             {{-- Kategori --}}

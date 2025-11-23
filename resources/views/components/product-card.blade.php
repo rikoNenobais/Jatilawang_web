@@ -71,20 +71,6 @@
                 Lihat Detail
             </a>
 
-            {{-- Tombol Keranjang --}}
-            @auth
-                <form method="POST" action="{{ route('cart.store') }}">
-                    @csrf
-                    <input type="hidden" name="item_id" value="{{ $item->item_id }}">
-                    <button type="submit" class="w-full bg-emerald-600 text-white font-semibold text-sm py-2.5 rounded-lg hover:bg-emerald-700 transition">
-                        + Keranjang
-                    </button>
-                </form>
-            @else
-                <button onclick="goToLoginWithRedirect()" class="w-full bg-emerald-600 text-white font-semibold text-sm py-2.5 rounded-lg hover:bg-emerald-700 transition">
-                    + Keranjang (Login)
-                </button>
-            @endauth
         </div>
         {{-- AKHIR DARI mt-auto --}}
 

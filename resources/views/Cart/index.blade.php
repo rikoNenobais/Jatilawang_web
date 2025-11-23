@@ -1,195 +1,301 @@
 @extends('layouts.public')
 
+@section('title', 'Keranjang - Jatilawang Adventure')
+
 @section('content')
-<section class="container cart-page">
-  <a href="{{ url()->previous() }}" class="back-link">← Keranjang Belanja</a>
+<section class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Keranjang Belanja</h1>
+            <p class="text-gray-600 mt-2">Kelola produk yang ingin Anda sewa atau beli</p>
+        </div>
 
-  <div class="cart-grid">
-    {{-- === LIST ITEM === --}}
-    <div class="cart-items" id="cart-items"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {{-- Cart Items --}}
+            <div class="lg:col-span-2">
+                {{-- RENTAL SECTION --}}
+                @if($rentalItems->count() > 0)
+                <div class="mb-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-1 h-8 bg-emerald-500 rounded"></div>
+                        <h2 class="text-xl font-bold text-gray-900">Produk Disewa</h2>
+                        <span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
+                            {{ $rentalItems->count() }} item
+                        </span>
+                    </div>
 
-    {{-- === SUMMARY === --}}
-    <aside class="cart-summary">
-      <h3>Detail Pesanan</h3>
-      <div class="summary-row">
-        <span>Subtotal</span>
-        <span id="subtotal">Rp 0</span>
-      </div>
-      <div class="summary-row">
-        <span>Pengiriman (estimasi)</span>
-        <span id="shipping">Rp 0</span>
-      </div>
-      <div class="summary-row total">
-        <span>Total</span>
-        <span id="total">Rp 0</span>
-      </div>
-      <button id="checkout-btn" class="btn-checkout">Checkout</button>
-      <p class="hint">* Ini demo frontend. Pembayaran akan diaktifkan saat backend siap.</p>
-    </aside>
-  </div>
+                    @foreach($rentalItems as $cartItem)
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            {{-- Product Image --}}
+                            <div class="flex-shrink-0">
+                                <img src="{{ $cartItem->item->url_image ?? 'https://via.placeholder.com/120' }}" 
+                                     alt="{{ $cartItem->item->item_name }}" 
+                                     class="w-24 h-24 object-cover rounded-lg">
+                            </div>
+
+                            {{-- Product Info & Controls --}}
+                            <div class="flex-grow">
+                                <div class="flex flex-col sm:flex-row justify-between">
+                                    {{-- Product Details --}}
+                                    <div class="flex-grow">
+                                        <h3 class="font-semibold text-lg text-gray-900 mb-1">
+                                            {{ $cartItem->item->item_name }}
+                                        </h3>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-800">
+                                                Sewa • {{ $cartItem->days }} hari
+                                            </span>
+                                        </div>
+                                        <p class="text-gray-600 text-sm mb-3">
+                                            Stok sewa: {{ $cartItem->item->rental_stock }} tersedia
+                                        </p>
+                                    </div>
+
+                                    {{-- Price --}}
+                                    <div class="flex-shrink-0 text-right mb-4 sm:mb-0">
+                                        <p class="text-lg font-semibold text-gray-900">
+                                            Rp {{ number_format($cartItem->total_price, 0, ',', '.') }}
+                                        </p>
+                                        <p class="text-sm text-gray-600">
+                                            Rp {{ number_format($cartItem->unit_price, 0, ',', '.') }}/hari
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {{-- Quantity Controls --}}
+                                <div class="flex items-center justify-between mt-4">
+                                    <form action="{{ route('cart.update', $cartItem->cart_item_id) }}" method="POST" class="flex items-center gap-3">
+                                        @csrf @method('PATCH')
+                                        
+                                        <div class="flex items-center gap-2">
+                                            <label class="text-sm text-gray-600">Hari:</label>
+                                            <input type="number" name="days" value="{{ $cartItem->days }}" min="1" 
+                                                  class="w-16 px-2 py-1 border border-gray-300 rounded text-sm">
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <label class="text-sm text-gray-600">Qty:</label>
+                                            <div class="flex border border-gray-300 rounded">
+                                                <button type="button" class="decrement-btn w-8 h-8 flex items-center justify-center hover:bg-gray-100">-</button>
+                                                <input type="number" name="quantity" value="{{ $cartItem->quantity }}" min="1" 
+                                                      class="w-12 text-center border-x border-gray-300">
+                                                <button type="button" class="increment-btn w-8 h-8 flex items-center justify-center hover:bg-gray-100">+</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    {{-- Remove Button --}}
+                                    <form action="{{ route('cart.destroy', $cartItem->cart_item_id) }}" method="POST">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                {{-- PURCHASE SECTION --}}
+                @if($purchaseItems->count() > 0)
+                <div class="mb-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-1 h-8 bg-orange-500 rounded"></div>
+                        <h2 class="text-xl font-bold text-gray-900">Produk Dibeli</h2>
+                        <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                            {{ $purchaseItems->count() }} item
+                        </span>
+                    </div>
+
+                    @foreach($purchaseItems as $cartItem)
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            {{-- Product Image --}}
+                            <div class="flex-shrink-0">
+                                <img src="{{ $cartItem->item->url_image ?? 'https://via.placeholder.com/120' }}" 
+                                     alt="{{ $cartItem->item->item_name }}" 
+                                     class="w-24 h-24 object-cover rounded-lg">
+                            </div>
+
+                            {{-- Product Info & Controls --}}
+                            <div class="flex-grow">
+                                <div class="flex flex-col sm:flex-row justify-between">
+                                    {{-- Product Details --}}
+                                    <div class="flex-grow">
+                                        <h3 class="font-semibold text-lg text-gray-900 mb-1">
+                                            {{ $cartItem->item->item_name }}
+                                        </h3>
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+                                                Beli
+                                            </span>
+                                        </div>
+                                        <p class="text-gray-600 text-sm mb-3">
+                                            Stok beli: {{ $cartItem->item->sale_stock }} tersedia
+                                        </p>
+                                    </div>
+
+                                    {{-- Price --}}
+                                    <div class="flex-shrink-0 text-right mb-4 sm:mb-0">
+                                        <p class="text-lg font-semibold text-gray-900">
+                                            Rp {{ number_format($cartItem->total_price, 0, ',', '.') }}
+                                        </p>
+                                        <p class="text-sm text-gray-600">
+                                            Satuan: Rp {{ number_format($cartItem->unit_price, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {{-- Quantity Controls --}}
+                                <div class="flex items-center justify-between mt-4">
+                                    <form action="{{ route('cart.update', $cartItem->cart_item_id) }}" method="POST" class="flex items-center gap-3">
+                                        @csrf @method('PATCH')
+                                        
+                                        <div class="flex items-center gap-2">
+                                            <label class="text-sm text-gray-600">Qty:</label>
+                                            <div class="flex border border-gray-300 rounded">
+                                                <button type="button" class="decrement-btn w-8 h-8 flex items-center justify-center hover:bg-gray-100">-</button>
+                                                <input type="number" name="quantity" value="{{ $cartItem->quantity }}" min="1" 
+                                                      class="w-12 text-center border-x border-gray-300">
+                                                <button type="button" class="increment-btn w-8 h-8 flex items-center justify-center hover:bg-gray-100">+</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    {{-- Remove Button --}}
+                                    <form action="{{ route('cart.destroy', $cartItem->cart_item_id) }}" method="POST">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                {{-- EMPTY STATE --}}
+                @if($rentalItems->count() == 0 && $purchaseItems->count() == 0)
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                    <div class="text-6xl mb-4">🛒</div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Keranjang Kosong</h3>
+                    <p class="text-gray-600 mb-6">Belum ada produk di keranjang Anda</p>
+                    <a href="{{ route('products.index') }}" class="inline-flex items-center px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition">
+                        Jelajahi Produk
+                    </a>
+                </div>
+                @endif
+            </div>
+
+            {{-- Order Summary --}}
+            @if($rentalItems->count() > 0 || $purchaseItems->count() > 0)
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h3>
+                    
+                    {{-- Rental Summary --}}
+                    @if($rentalItems->count() > 0)
+                    <div class="mb-4 pb-4 border-b border-gray-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                            <span class="text-sm font-medium text-gray-700">Sewa</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Subtotal Sewa</span>
+                                <span>Rp {{ number_format($rentalSubtotal, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>{{ $rentalItems->count() }} produk</span>
+                                <span>{{ $rentalItems->sum('quantity') }} item</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Purchase Summary --}}
+                    @if($purchaseItems->count() > 0)
+                    <div class="mb-4 pb-4 border-b border-gray-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-3 h-3 bg-orange-500 rounded-full"></span>
+                            <span class="text-sm font-medium text-gray-700">Beli</span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Subtotal Beli</span>
+                                <span>Rp {{ number_format($purchaseSubtotal, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>{{ $purchaseItems->count() }} produk</span>
+                                <span>{{ $purchaseItems->sum('quantity') }} item</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Total Summary --}}
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Total Item</span>
+                            <span>{{ $rentalItems->count() + $purchaseItems->count() }} produk</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>Total Kuantitas</span>
+                            <span>{{ $rentalItems->sum('quantity') + $purchaseItems->sum('quantity') }} item</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4 mb-6">
+                        <div class="flex justify-between text-lg font-semibold text-gray-900">
+                            <span>Total</span>
+                            <span>Rp {{ number_format($totalSubtotal, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    <button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg font-semibold text-lg transition">
+                        Lanjut ke Pembayaran
+                    </button>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
 </section>
 
-<style>
-  .container{max-width:1100px;margin:0 auto;padding:24px}
-  .back-link{display:inline-block;margin-bottom:16px;color:#111;font-weight:700;text-decoration:none}
-  .cart-grid{display:grid;grid-template-columns:1fr 360px;gap:28px}
-  .cart-items{background:#fff;border:1px solid #eee;border-radius:14px;padding:10px}
-  .cart-item{display:grid;grid-template-columns:96px 1fr auto;gap:14px;align-items:center;padding:16px;border-bottom:1px solid #f1f5f9}
-  .cart-item:last-child{border-bottom:none}
-  .ci-img{width:96px;height:96px;border-radius:12px;object-fit:cover;background:#f3f4f6}
-  .ci-title{font-weight:700;margin-bottom:4px}
-  .ci-sku{font-size:12px;color:#6b7280}
-  .qty{display:inline-flex;align-items:center;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
-  .qty button{width:34px;height:34px;border:0;background:#fff;cursor:pointer}
-  .qty input{width:46px;text-align:center;border:0;outline:0}
-  .ci-price{font-weight:700;margin-left:12px;min-width:120px;text-align:right}
-  .ci-remove{margin-left:12px;background:none;border:0;color:#9ca3af;cursor:pointer}
-  .cart-summary{background:#fff;border:1px solid #eee;border-radius:14px;padding:20px;height:fit-content}
-  .cart-summary h3{margin:0 0 12px}
-  .summary-row{display:flex;justify-content:space-between;padding:8px 0}
-  .summary-row.total{border-top:1px solid #f1f5f9;margin-top:8px;font-weight:800;padding-top:12px}
-  .btn-checkout{width:100%;margin-top:16px;padding:12px 14px;border-radius:10px;border:0;background:#0b3b32;color:#fff;font-weight:700;cursor:pointer}
-  .hint{font-size:12px;color:#6b7280;margin-top:8px}
-  .empty{padding:32px;text-align:center;color:#6b7280}
-  @media (max-width: 960px){ .cart-grid{grid-template-columns:1fr} }
-</style>
-
 <script>
-  /** ---------- CART STORAGE (frontend only) ---------- **/
-  const CKEY = "keujak_cart"; // localStorage key
-
-  function idr(n){ return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n||0); }
-
-  function normalizeNumber(value){
-    const num = typeof value === 'string' ? value.replace(/[^0-9.-]/g,'') : value;
-    return Number(num) || 0;
-  }
-
-  function normalizeCartShape(raw){
-    if (Array.isArray(raw)){
-      return raw.map(item => ({
-        id: item.id,
-        name: item.name || '',
-        qty: Math.max(1, Number(item.qty ?? item.quantity) || 1),
-        price: normalizeNumber(item.price),
-        image: item.image || '',
-        sku: item.sku || ''
-      }));
-    }
-    if (raw && typeof raw === 'object'){
-      return Object.entries(raw).map(([id,item]) => ({
-        id,
-        name: item.name || '',
-        qty: Math.max(1, Number(item.qty ?? item.quantity) || 1),
-        price: normalizeNumber(item.price),
-        image: item.image || '',
-        sku: item.sku || ''
-      }));
-    }
-    return [];
-  }
-
-  function getCart(){
-    try{
-      const parsed = JSON.parse(localStorage.getItem(CKEY));
-      const normalized = normalizeCartShape(parsed || []);
-      if(parsed && !Array.isArray(parsed)) saveCart(normalized);
-      return normalized;
-    }catch{ return []; }
-  }
-  function saveCart(items){ localStorage.setItem(CKEY, JSON.stringify(items)); }
-  function updateBadge(){
-    const count = getCart().reduce((a,b)=>a + b.qty, 0);
-    document.querySelectorAll('[data-cart-badge]').forEach(el => {
-      el.textContent = count;
-    });
-  }
-
-  /** ---------- UI RENDER ---------- **/
-  const elItems   = document.getElementById('cart-items');
-  const elSubtotal= document.getElementById('subtotal');
-  const elShipping= document.getElementById('shipping');
-  const elTotal   = document.getElementById('total');
-
-  // simple shipping rule (demo): Rp 20.000 jika subtotal > 0
-  function shippingFee(subtotal){ return subtotal > 0 ? 20000 : 0; }
-
-  function render(){
-    const cart = getCart();
-    if(cart.length === 0){
-      elItems.innerHTML = `<div class="empty">Keranjang masih kosong.</div>`;
-      elSubtotal.textContent = idr(0);
-      elShipping.textContent = idr(0);
-      elTotal.textContent    = idr(0);
-      updateBadge();
-      return;
-    }
-
-    elItems.innerHTML = cart.map(item => `
-      <div class="cart-item" data-id="${item.id}">
-        <img src="${item.image || 'https://via.placeholder.com/96'}" alt="${item.name}" class="ci-img">
-        <div>
-          <div class="ci-title">${item.name}</div>
-          <div class="ci-sku">#${item.sku || '-'}</div>
-        </div>
-        <div style="display:flex;align-items:center;">
-          <div class="qty">
-            <button class="btn-dec" aria-label="Kurangi">−</button>
-            <input class="inp-qty" type="text" value="${item.qty}" inputmode="numeric" />
-            <button class="btn-inc" aria-label="Tambah">+</button>
-          </div>
-          <div class="ci-price">${idr(normalizeNumber(item.price) * item.qty)}</div>
-          <button class="ci-remove" title="Hapus">×</button>
-        </div>
-      </div>
-    `).join('');
-
-    // events
-    elItems.querySelectorAll('.cart-item').forEach(row => {
-      const id = row.dataset.id;
-      row.querySelector('.btn-inc').addEventListener('click', () => changeQty(id, +1));
-      row.querySelector('.btn-dec').addEventListener('click', () => changeQty(id, -1));
-      row.querySelector('.inp-qty').addEventListener('change', (e) => setQty(id, parseInt(e.target.value || 1)));
-      row.querySelector('.ci-remove').addEventListener('click', () => removeItem(id));
+document.addEventListener('DOMContentLoaded', function() {
+    // Quantity controls in cart - auto submit
+    document.querySelectorAll('.increment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input[name="quantity"]');
+            input.value = parseInt(input.value) + 1;
+            this.closest('form').submit(); // Auto submit
+        });
     });
 
-    // totals
-    const subtotal = cart.reduce((s,i)=> s + (normalizeNumber(i.price) * i.qty), 0);
-    const ship     = shippingFee(subtotal);
-    elSubtotal.textContent = idr(subtotal);
-    elShipping.textContent = idr(ship);
-    elTotal.textContent    = idr(subtotal + ship);
-    updateBadge();
-  }
+    document.querySelectorAll('.decrement-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input[name="quantity"]');
+            if (parseInt(input.value) > 1) {
+                input.value = parseInt(input.value) - 1;
+                this.closest('form').submit(); // Auto submit
+            }
+        });
+    });
 
-  /** ---------- MUTATIONS ---------- **/
-  function changeQty(id, delta){
-    const cart = getCart();
-    const it = cart.find(i=> String(i.id) === String(id));
-    if(!it) return;
-    it.qty = Math.max(1, (it.qty||1) + delta);
-    saveCart(cart); render();
-  }
-  function setQty(id, qty){
-    const cart = getCart();
-    const it = cart.find(i=> String(i.id) === String(id));
-    if(!it) return;
-    it.qty = Math.max(1, isNaN(qty)?1:qty);
-    saveCart(cart); render();
-  }
-  function removeItem(id){
-    let cart = getCart().filter(i => String(i.id) !== String(id));
-    saveCart(cart); render();
-  }
-
-  /** ---------- CHECKOUT (placeholder) ---------- **/
-  document.getElementById('checkout-btn').addEventListener('click', () => {
-    const items = getCart();
-    if(items.length === 0){ alert('Keranjang masih kosong.'); return; }
-    // Demo: tampilkan ringkasan. Nanti ganti menuju /checkout dan kirim ke backend.
-    alert('Demo checkout: ' + JSON.stringify(items));
-  });
-
-  render();
+    // Auto submit when days input changes
+    document.querySelectorAll('input[name="days"]').forEach(input => {
+        input.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    });
+});
 </script>
 @endsection
