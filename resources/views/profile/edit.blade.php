@@ -3,18 +3,15 @@
 @section('title', 'Profil Saya - Jatilawang Adventure')
 
 @section('content')
-    {{-- ===================== HERO SECTION ===================== --}}
+    {{-- HERO SECTION --}}
     <section class="relative overflow-hidden py-16 md:py-24">
-        {{-- Background Foto --}}
         <div class="absolute inset-0">
             <img src="{{ asset('storage/hero/peaks.jpg') }}" 
                  alt="Pegunungan Jatilawang Adventure" 
                  class="w-full h-full object-cover">
-            {{-- Overlay Gradient --}}
             <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/80 via-emerald-800/70 to-teal-700/80"></div>
         </div>
         
-        {{-- Efek Blur --}}
         <div class="pointer-events-none absolute -top-40 -left-40 h-[700px] w-[700px] rounded-full bg-emerald-900/20 blur-3xl"></div>
         
         <div class="relative max-w-7xl mx-auto px-6 md:px-8">
@@ -27,7 +24,7 @@
         </div>
     </section>
 
-    {{-- ===================== MAIN CONTENT ===================== --}}
+    {{-- MAIN CONTENT --}}
     <section class="py-16 bg-white">
         <div class="max-w-4xl mx-auto px-6 md:px-8">
             {{-- Alert Success --}}
@@ -38,7 +35,7 @@
             @endif
 
             <div class="grid lg:grid-cols-3 gap-8">
-                {{-- ===================== SIDEBAR NAVIGATION ===================== --}}
+                {{-- SIDEBAR --}}
                 <div class="lg:col-span-1">
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Menu Profil</h3>
@@ -50,7 +47,7 @@
                                 </svg>
                                 Profil Saya
                             </a>
-                            <a href="#" 
+                            <a href="{{ route('profile.change-password') }}" 
                                class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -68,7 +65,7 @@
                     </div>
                 </div>
 
-                {{-- ===================== PROFIL VIEW ===================== --}}
+                {{-- PROFIL VIEW --}}
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
                         <div class="flex justify-between items-center mb-6">
@@ -121,13 +118,6 @@
                                     <p class="text-gray-900 whitespace-pre-line">{{ $user->address ?? '-' }}</p>
                                 </div>
                             </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Peran</label>
-                                <div class="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-                                    <p class="text-gray-900 capitalize">{{ $user->role }}</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -145,8 +135,8 @@
         </div>
     </section>
 
-    {{-- ===================== EDIT MODAL ===================== --}}
-    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    {{-- EDIT MODAL --}}
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 {{ $errors->has('password') ? '' : 'hidden' }}">
         <div class="bg-white rounded-xl p-6 md:p-8 mx-4 max-w-md w-full">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-bold text-gray-900">Konfirmasi Kata Sandi</h3>
@@ -158,6 +148,13 @@
             </div>
             
             <p class="text-gray-600 mb-6">Masukkan kata sandi Anda untuk mengubah profil</p>
+            
+            {{-- Error di modal --}}
+            @if($errors->has('password'))
+                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                    {{ $errors->first('password') }}
+                </div>
+            @endif
             
             <form id="passwordForm" action="{{ route('profile.verify') }}" method="POST">
                 @csrf
@@ -171,9 +168,6 @@
                            required
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                            placeholder="Masukkan kata sandi Anda">
-                    @error('password')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
                 </div>
                 
                 <div class="flex gap-3">
@@ -194,24 +188,15 @@
     <script>
         function openEditModal() {
             document.getElementById('editModal').classList.remove('hidden');
-            document.getElementById('password').focus();
         }
 
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
-            document.getElementById('passwordForm').reset();
         }
 
         // Tutup modal ketika klik di luar
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Tutup modal dengan ESC key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
                 closeEditModal();
             }
         });

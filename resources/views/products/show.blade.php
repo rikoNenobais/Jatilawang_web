@@ -46,11 +46,23 @@
                     {{ $item->item_name ?? '' }}
                 </h1>
 
-                <p class="text-2xl font-semibold text-emerald-900 mb-6">
-                    Rp{{ number_format($item->rental_price_per_day ?? 0, 0, ',', '.') }} <small class="text-sm text-gray-600">/hari</small>
-                </p>
+                {{-- Prices --}}
+                <div class="mb-6">
+                    @if($item->is_rentable)
+                    <p class="text-2xl font-semibold text-emerald-900 mb-2">
+                        Rp{{ number_format($item->rental_price_per_day ?? 0, 0, ',', '.') }} <small class="text-sm text-gray-600">/hari</small>
+                    </p>
+                    @endif
+                    
+                    @if($item->is_sellable)
+                    <p class="text-2xl font-semibold text-orange-600">
+                        Rp{{ number_format($item->sale_price ?? 0, 0, ',', '.') }} <small class="text-sm text-gray-600">(Beli)</small>
+                    </p>
+                    @endif
+                </div>
 
                 {{-- Days pills (interactive) --}}
+                @if($item->is_rentable && $item->rental_stock > 0)
                 <div class="mb-4">
                     <p class="font-medium text-gray-800 mb-2">Sewa Berapa Hari :</p>
                     <div class="flex flex-wrap gap-2" id="days-selector">
@@ -61,6 +73,7 @@
                     </div>
                     <input type="hidden" id="selectedDays" name="days" value="1">
                 </div>
+                @endif
 
                 {{-- Material (optional) --}}
                 @if($item->material ?? false)
@@ -78,7 +91,8 @@
 
                 {{-- Total price calculation --}}
                 @php
-                    $numericPrice = $item->rental_price_per_day ?? 0;
+                    $rentalPrice = $item->rental_price_per_day ?? 0;
+                    $salePrice = $item->sale_price ?? 0;
                 @endphp
 
                 <div class="flex items-center gap-6 mb-6">
@@ -90,38 +104,62 @@
                     </div>
 
                     <div class="text-gray-800 text-lg font-semibold">
-                        Total Sewa: <span id="totalPrice" class="text-emerald-800">
-                            Rp {{ number_format($numericPrice, 0, ',', '.') }}
-                        </span>
+                        @if($item->is_rentable && $item->rental_stock > 0)
+                            Total Sewa: <span id="totalPrice" class="text-emerald-800">
+                                Rp {{ number_format($rentalPrice, 0, ',', '.') }}
+                            </span>
+                        @elseif($item->is_sellable && $item->sale_stock > 0)
+                            Total Beli: <span id="totalPrice" class="text-orange-600">
+                                Rp {{ number_format($salePrice, 0, ',', '.') }}
+                            </span>
+                        @endif
                     </div>
                 </div>
 
                 {{-- Action buttons --}}
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6">
-                    <button class="w-full sm:w-48 flex items-center justify-center gap-2 border border-gray-300 px-5 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6.5 3.5 5 5.5 5 c1.54 0 3.04.99 3.57 2.36h1.87 C13.46 5.99 14.96 5 16.5 5 18.5 5 20 6.5 20 8,0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
-                        Favorit
-                    </button>
+                    {{-- RENT BUTTON --}}
+                    @if($item->is_rentable && $item->rental_stock > 0)
+                    <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
+                        @csrf
+                        <input type="hidden" name="item_id" value="{{ $item->item_id }}">
+                        <input type="hidden" name="type" value="rent">
+                        <input type="hidden" name="quantity" id="rentQuantity" value="1">
+                        <input type="hidden" name="days" id="rentDays" value="1">
+                        <button type="submit" class="w-full bg-emerald-900 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition flex items-center justify-center gap-2">
+                            Masukkan Keranjang (Sewa)
+                        </button>
+                    </form>
+                    @endif
 
-                    <button type="button"
-                        class="w-full sm:w-48 bg-emerald-900 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition add-to-cart"
-                        data-id="{{ $item->item_id }}"
-                        data-name="{{ $item->item_name }}"
-                        data-price="{{ $numericPrice }}"
-                        data-image="{{ $productImage }}"
-                        data-sku="{{ $item->item_code ?? $item->item_id }}"
-                        data-quantity-target="#selectedQty">
-                        Tambahkan ke Keranjang
-                    </button>
+                    {{-- BUY BUTTON --}}
+                    @if($item->is_sellable && $item->sale_stock > 0)
+                    <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
+                        @csrf
+                        <input type="hidden" name="item_id" value="{{ $item->item_id }}">
+                        <input type="hidden" name="type" value="buy">
+                        <input type="hidden" name="quantity" id="buyQuantity" value="1">
+                        <button type="submit" class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 transition flex items-center justify-center gap-2">
+                            Masukkan Keranjang (Beli)
+                        </button>
+                    </form>
+                    @endif
                 </div>
 
                 {{-- Stock badge --}}
-                @if($item->rental_stock ?? false)
+                @if($item->rental_stock ?? false || $item->sale_stock ?? false)
                     <div class="mt-6 inline-flex items-center gap-3 text-sm text-gray-600">
                         <span class="p-3 bg-gray-100 rounded-md">Stok</span>
-                        <span>Stok tersedia: <strong>{{ $item->rental_stock }}</strong></span>
+                        <span>
+                            @if($item->is_rentable && $item->is_sellable)
+                                Sewa: <strong>{{ $item->rental_stock }}</strong>, 
+                                Beli: <strong>{{ $item->sale_stock }}</strong>
+                            @elseif($item->is_rentable)
+                                Tersedia: <strong>{{ $item->rental_stock }}</strong>
+                            @else
+                                Tersedia: <strong>{{ $item->sale_stock }}</strong>
+                            @endif
+                        </span>
                     </div>
                 @endif
             </div>
@@ -180,7 +218,10 @@
     .day-btn.active{background:#064e3b;color:#fff;border-color:#064e3b}
 </style>
 
-<div id="product-data" data-base-price="{{ $numericPrice }}" style="display:none"></div>
+<div id="product-data" 
+     data-rent-price="{{ $rentalPrice }}" 
+     data-sale-price="{{ $salePrice }}"
+     style="display:none"></div>
 
 <script>
     function formatRupiah(num){
@@ -188,13 +229,33 @@
     }
 
     function getBasePrice(){
-        return Number(document.getElementById('product-data')?.dataset?.basePrice) || 0;
+        const productData = document.getElementById('product-data');
+        const isRentable = {{ $item->is_rentable && $item->rental_stock > 0 ? 'true' : 'false' }};
+        
+        if (isRentable) {
+            return Number(productData.dataset.rentPrice);
+        } else {
+            return Number(productData.dataset.salePrice);
+        }
     }
 
     function updateTotals(){
         const days = Number(document.getElementById('selectedDays')?.value) || 1;
-        const qty = Number(document.getElementById('selectedQty')?.value) || 1;
-        const total = getBasePrice() * days * qty;
+        const qty = Number(document.getElementById('qty-display').textContent) || 1;
+        const basePrice = getBasePrice();
+        
+        // Update hidden inputs
+        document.getElementById('rentQuantity')?.setAttribute('value', qty);
+        document.getElementById('buyQuantity')?.setAttribute('value', qty);
+        
+        // Calculate total
+        let total = basePrice * qty;
+        
+        // Jika rental, kalikan dengan days
+        if (document.getElementById('selectedDays')) {
+            total = basePrice * days * qty;
+        }
+        
         document.getElementById('totalPrice').textContent = formatRupiah(total);
     }
 
@@ -212,22 +273,23 @@
                 this.classList.add('active');
                 this.setAttribute('aria-pressed', 'true');
                 document.getElementById('selectedDays').value = this.dataset.days;
+                document.getElementById('rentDays').value = this.dataset.days;
                 updateTotals();
             });
         });
 
         // Quantity
         document.querySelector('.qty-btn.decrement').addEventListener('click', () => {
-            let qty = Math.max(1, Number(document.getElementById('selectedQty').value) - 1);
-            document.getElementById('selectedQty').value = qty;
+            let qty = Math.max(1, Number(document.getElementById('qty-display').textContent) - 1);
             document.getElementById('qty-display').textContent = qty;
+            document.getElementById('selectedQty').value = qty;
             updateTotals();
         });
 
         document.querySelector('.qty-btn.increment').addEventListener('click', () => {
-            let qty = Number(document.getElementById('selectedQty').value) + 1;
-            document.getElementById('selectedQty').value = qty;
+            let qty = Number(document.getElementById('qty-display').textContent) + 1;
             document.getElementById('qty-display').textContent = qty;
+            document.getElementById('selectedQty').value = qty;
             updateTotals();
         });
 

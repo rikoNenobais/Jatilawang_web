@@ -2,99 +2,136 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CartItem;
 use App\Models\Item;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // Add this import for authentication checks
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-    // KEY session untuk cart
-    private const SESSION_KEY = 'cart.items'; // bentuk: [item_id => qty]
-
-    /**
-     * Tampilkan isi keranjang (dari session).
-     */
     public function index()
     {
-        $items = collect(session(self::SESSION_KEY, [])); // [id => qty]
-        $dbItems = Item::whereIn('item_id', $items->keys())
-            ->get()
-            ->keyBy('item_id');
+        $cartItems = CartItem::with('item')
+            ->where('user_id', Auth::id())
+            ->get();
 
-        // susun baris yang siap dipakai di view
-        $rows = $items->map(function ($qty, $itemId) use ($dbItems) {
-            $p = $dbItems->get($itemId);
-            if (!$p) return null;
+        // Pisahkan items berdasarkan type
+        $rentalItems = $cartItems->filter(function ($item) {
+            return $item->isRental();
+        });
+        
+        $purchaseItems = $cartItems->filter(function ($item) {
+            return $item->isPurchase();
+        });
 
-            return [
-                'product' => $p,
-                'qty'     => (int) $qty,
-                'price'   => (int) ($p->rental_price_per_day ?? 0),
-                'total'   => (int) ($p->rental_price_per_day ?? 0) * (int) $qty,
-            ];
-        })->filter(); // buang null bila ada id yang tidak ditemukan
+        // Hitung subtotal per kategori
+        $rentalSubtotal = $rentalItems->sum(function ($cartItem) {
+            return $cartItem->total_price;
+        });
+        
+        $purchaseSubtotal = $purchaseItems->sum(function ($cartItem) {
+            return $cartItem->total_price;
+        });
 
-        $subtotal = (int) $rows->sum('total');
+        $totalSubtotal = $rentalSubtotal + $purchaseSubtotal;
 
         return view('cart.index', [
-            'rows'     => $rows,
-            'subtotal' => $subtotal,
+            'rentalItems' => $rentalItems,
+            'purchaseItems' => $purchaseItems,
+            'rentalSubtotal' => $rentalSubtotal,
+            'purchaseSubtotal' => $purchaseSubtotal,
+            'totalSubtotal' => $totalSubtotal,
+            'totalItems' => $cartItems->sum('quantity'),
         ]);
     }
 
-    /**
-     * Tambah produk ke keranjang (session).
-     */
     public function store(Request $request)
     {
-        // Ensure the user is authenticated
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Silakan login untuk menambahkan produk ke keranjang.');
         }
 
         $data = $request->validate([
             'item_id' => ['required', 'exists:items,item_id'],
-            'qty'        => ['nullable', 'integer', 'min:1'],
+            'type' => ['required', 'in:rent,buy'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'days' => ['nullable', 'integer', 'min:1']
         ]);
-        $qty = (int) ($data['qty'] ?? 1);
 
-        $items = collect(session(self::SESSION_KEY, []));
-        $items[$data['item_id']] = ($items[$data['item_id']] ?? 0) + $qty;
+        $quantity = (int) $data['quantity'];
+        $type = $data['type'];
 
-        session([self::SESSION_KEY => $items->toArray()]);
-
-        return back()->with('success', 'Produk ditambahkan ke keranjang.');
-    }
-
-    /**
-     * Ubah jumlah (qty) item tertentu.
-     * Route: PATCH /cart/{product}
-     */
-    public function update(Request $request, Item $item)
-    {
-        $qty = (int) $request->validate([
-            'qty' => ['required', 'integer', 'min:1'],
-        ])['qty'];
-
-        $items = collect(session(self::SESSION_KEY, []));
-        if ($items->has($item->item_id)) {
-            $items[$item->item_id] = $qty;
-            session([self::SESSION_KEY => $items->toArray()]);
+        // Check item availability
+        $item = Item::find($data['item_id']);
+        
+        if ($type === 'rent' && (!$item->is_rentable || $item->rental_stock < $quantity)) {
+            return back()->with('error', 'Stok sewa tidak mencukupi atau produk tidak dapat disewa.');
         }
 
-        return back()->with('success', 'Jumlah produk diperbarui.');
+        if ($type === 'buy' && (!$item->is_sellable || $item->sale_stock < $quantity)) {
+            return back()->with('error', 'Stok penjualan tidak mencukupi atau produk tidak dapat dibeli.');
+        }
+
+        // Create or update cart item
+        CartItem::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'item_id' => $data['item_id'],
+                'type' => $type
+            ],
+            [
+                'quantity' => $quantity,
+                'days' => $type === 'rent' ? (int) ($data['days'] ?? 1) : null
+            ]
+        );
+
+        $typeLabel = $type === 'rent' ? 'disewa' : 'dibeli';
+        return back()->with('success', "Produk berhasil ditambahkan ke keranjang ($typeLabel).");
     }
 
-    /**
-     * Hapus satu item dari keranjang.
-     * Route: DELETE /cart/{product}
-     */
-    public function destroy(Item $item)
+    public function update(Request $request, $cart_item_id)
     {
-        $items = collect(session(self::SESSION_KEY, []));
-        $items->forget($item->item_id);
-        session([self::SESSION_KEY => $items->toArray()]);
+        $cartItem = CartItem::findOrFail($cart_item_id);
+        
+        if ($cartItem->user_id !== Auth::id()) {
+            abort(403);
+        }
 
+        $data = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+            'days' => ['nullable', 'integer', 'min:1']
+        ]);
+
+        // Check stock
+        $item = $cartItem->item;
+        $newQuantity = (int) $data['quantity'];
+
+        if ($cartItem->isRental() && $item->rental_stock < $newQuantity) {
+            return back()->with('error', 'Stok sewa tidak mencukupi.');
+        }
+
+        if ($cartItem->isPurchase() && $item->sale_stock < $newQuantity) {
+            return back()->with('error', 'Stok penjualan tidak mencukupi.');
+        }
+
+        // Update
+        $cartItem->update([
+            'quantity' => $newQuantity,
+            'days' => $cartItem->isRental() ? (int) ($data['days'] ?? $cartItem->days) : null
+        ]);
+
+        return back()->with('success', 'Keranjang diperbarui.');
+    }
+
+    public function destroy($cart_item_id)
+    {
+        $cartItem = CartItem::findOrFail($cart_item_id);
+        
+        if ($cartItem->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $cartItem->delete();
         return back()->with('success', 'Produk dihapus dari keranjang.');
     }
 }

@@ -1,17 +1,20 @@
-@extends('layouts.guest')
+@extends('layouts.public')
 
 @section('title', 'Reset Password - Jatilawang Adventure')
 
 @section('content')
-    {{-- HERO SECTION --}}
+    {{-- ===================== HERO SECTION ===================== --}}
     <section class="relative overflow-hidden py-16 md:py-24">
+        {{-- Background Foto --}}
         <div class="absolute inset-0">
             <img src="{{ asset('storage/hero/peaks.jpg') }}" 
                  alt="Pegunungan Jatilawang Adventure" 
                  class="w-full h-full object-cover">
+            {{-- Overlay Gradient --}}
             <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/80 via-emerald-800/70 to-teal-700/80"></div>
         </div>
         
+        {{-- Efek Blur --}}
         <div class="pointer-events-none absolute -top-40 -left-40 h-[700px] w-[700px] rounded-full bg-emerald-900/20 blur-3xl"></div>
         
         <div class="relative max-w-7xl mx-auto px-6 md:px-8">
@@ -24,10 +27,11 @@
         </div>
     </section>
 
-    {{-- MAIN CONTENT --}}
+    {{-- ===================== MAIN CONTENT ===================== --}}
     <section class="py-16 bg-white">
         <div class="max-w-md mx-auto px-6 md:px-8">
             <div class="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
+                {{-- Alert Error --}}
                 @if ($errors->any())
                     <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
                         <ul class="list-disc list-inside">
@@ -47,10 +51,10 @@
                     @csrf
                     
                     {{-- Token Hidden --}}
-                    <input type="hidden" name="token" value="{{ $token ?? request()->route('token') }}">
+                    <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
                     {{-- Email Hidden --}}
-                    <input type="hidden" name="email" value="{{ $email ?? request()->email ?? old('email') }}">
+                    <input type="hidden" name="email" value="{{ $request->email }}">
 
                     {{-- New Password --}}
                     <div class="mb-6">
@@ -88,6 +92,7 @@
                         </ul>
                     </div>
 
+                    {{-- Submit Button --}}
                     <button type="submit"
                             class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
                         Reset Password

@@ -10,8 +10,7 @@ class ProductController extends Controller
     // ================== HOMEPAGE (3 TAB PRODUK) ==================
 public function home()
 {   
-       // Untuk debugging - lihat kategori yang ada
-    $categories = Item::distinct()->pluck('category');
+    
     // 1. Terbaru — 8 produk terbaru
     $latest = Item::latest()->take(8)->get();
 
@@ -76,11 +75,36 @@ public function home()
             $query->whereIn('category', $request->categories);
         }
 
+
+        // ========== FILTER SEWA/BELI (CHECKBOX) ==========
+        $hasSewa = $request->boolean('sewa');
+        $hasBeli = $request->boolean('beli');
+
+        if ($hasSewa && $hasBeli) {
+            // Tampilkan yang bisa sewa ATAU beli
+            $query->where(function ($q) {
+                $q->where('is_rentable', true)->where('rental_stock', '>', 0)
+                ->orWhere('is_sellable', true)->where('sale_stock', '>', 0);
+            });
+        } 
+        elseif ($hasSewa) {
+            // Hanya yang bisa disewa
+            $query->where('is_rentable', true)
+                ->where('rental_stock', '>', 0);
+        } 
+        elseif ($hasBeli) {
+            // Hanya yang bisa dibeli
+            $query->where('is_sellable', true)
+                ->where('sale_stock', '>', 0);
+        }
+
         if ($request->filled('sort')) {
             match ($request->sort) {
                 'latest'     => $query->latest('created_at'),
-                'price_low'  => $query->orderByRaw('COALESCE(rental_price_per_day, 999999999) ASC'),
-                'price_high' => $query->orderByRaw('COALESCE(rental_price_per_day, 0) DESC'),
+                'price_low_rent'  => $query->orderByRaw('COALESCE(rental_price_per_day, 999999999) ASC'),
+                'price_high_rent' => $query->orderByRaw('COALESCE(rental_price_per_day, 0) DESC'),
+                'price_low_buy'  => $query->orderByRaw('COALESCE(sale_price, 999999999) ASC'),
+                'price_high_uy' => $query->orderByRaw('COALESCE(sale_price, 0) DESC'),
                 'name_asc'   => $query->orderBy('item_name', 'asc'),
                 'name_desc'  => $query->orderBy('item_name', 'desc'),
                 'popular'    => $query->orderByDesc('rental_stock'),
@@ -89,6 +113,7 @@ public function home()
         } else {
             $query->latest();
         }
+
 
         return $query->paginate(20)->withQueryString();
     }
