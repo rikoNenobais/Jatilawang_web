@@ -6,15 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetailBuy extends Model
 {
-    protected $primaryKey = 'order_detail_id';
-    public $table = 'detail_orders';
+    protected $primaryKey = 'buy_detail_id';
+    protected $table = 'detail_buys'; // SESUAIKAN DENGAN MIGRATION
 
-    protected $fillable = ['order_id', 'item_id', 'quantity', 'total_price'];
+    protected $fillable = [
+        'buy_id', // SESUAIKAN DENGAN MIGRATION
+        'item_id', 
+        'quantity', 
+        'total_price'
+    ];
 
     // Relasi
-    public function order()
+    public function buy()
     {
-        return $this->belongsTo(Buy::class, 'order_id', 'order_id');
+        return $this->belongsTo(Buy::class, 'buy_id', 'buy_id'); // SESUAIKAN
     }
 
     public function item()

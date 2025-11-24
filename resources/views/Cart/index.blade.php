@@ -258,10 +258,11 @@
                             <span>Rp {{ number_format($totalSubtotal, 0, ',', '.') }}</span>
                         </div>
                     </div>
-
-                    <button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg font-semibold text-lg transition">
+            
+                    <a href="{{ route('checkout.show') }}" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-lg font-semibold text-lg transition text-center block">
                         Lanjut ke Pembayaran
-                    </button>
+                    </a>
                 </div>
             </div>
             @endif

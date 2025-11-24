@@ -9,7 +9,12 @@ class DetailRental extends Model
     protected $primaryKey = 'rental_detail_id';
     public $table = 'detail_rentals';
 
-    protected $fillable = ['rental_id', 'item_id', 'quantity', 'penalty'];
+    protected $fillable = [
+        'rental_id', 
+        'item_id', 
+        'quantity', 
+        'penalty'
+    ];
 
     // Relasi
     public function rental()

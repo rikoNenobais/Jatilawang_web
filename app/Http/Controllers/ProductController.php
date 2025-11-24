@@ -119,28 +119,28 @@ public function home()
     }
 
 
-    public function showArray($item_id)
-    {
-        // ambil item berdasarkan item_id
-        $item = Item::where('item_id', $item_id)->firstOrFail();
+    // public function showArray($item_id)
+    // {
+    //     // ambil item berdasarkan item_id
+    //     $item = Item::where('item_id', $item_id)->firstOrFail();
 
-        // mapping ke struktur yang dipakai di Blade sebagai $product
-        $product = [
-            'id'            => $item->item_id,
-            'slug'          => (string) $item->item_id,
-            'name'          => $item->item_name,
-            'price'         => $item->rental_price_per_day, // bisa kamu format di Blade
-            'numeric_price' => (int) ($item->rental_price_per_day ?? 0),
-            'img_url'       => $item->url_image,
-            'desc'          => $item->description,
-            'material'      => $item->material ?? null,  // kalau kolom nggak ada, akan null dan aman
-            'stock'         => $item->rental_stock ?? 0,
-            'category'      => $item->category ?? null,
-        ];
+    //     // mapping ke struktur yang dipakai di Blade sebagai $product
+    //     $product = [
+    //         'id'            => $item->item_id,
+    //         'slug'          => (string) $item->item_id,
+    //         'name'          => $item->item_name,
+    //         'price'         => $item->rental_price_per_day, // bisa kamu format di Blade
+    //         'numeric_price' => (int) ($item->rental_price_per_day ?? 0),
+    //         'img_url'       => $item->url_image,
+    //         'desc'          => $item->description,
+    //         'material'      => $item->material ?? null,  // kalau kolom nggak ada, akan null dan aman
+    //         'stock'         => $item->rental_stock ?? 0,
+    //         'category'      => $item->category ?? null,
+    //     ];
 
-        // kalau view kamu juga butuh data produk terkait, bisa ditambah di sini nanti
+    //     // kalau view kamu juga butuh data produk terkait, bisa ditambah di sini nanti
 
-        return view('products.show', compact('product', 'item'));
-    }
+    //     return view('products.show', compact('product', 'item'));
+    // }
 
 }

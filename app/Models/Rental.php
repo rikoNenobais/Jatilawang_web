@@ -10,8 +10,22 @@ class Rental extends Model
     public $incrementing = true;
 
     protected $fillable = [
-        'user_id', 'rental_start_date', 'rental_end_date',
-        'return_date', 'total_price'
+        'user_id', 
+        'rental_start_date', 
+        'rental_end_date',
+        'return_date', 
+        'total_price',
+        // FIELD BARU SESUAI MIGRATION
+        'payment_method',
+        'payment_status',
+        'order_status', 
+        'delivery_option',
+        'payment_proof',
+        'identity_file',
+        'identity_type',
+        'shipping_address',
+        'paid_at'
+        // TIDAK ADA delivery_fee - SESUAI MIGRATION
     ];
 
     protected $dates = ['rental_start_date', 'rental_end_date', 'return_date'];
@@ -30,7 +44,7 @@ class Rental extends Model
     public function items()
     {
         return $this->belongsToMany(Item::class, 'detail_rentals', 'rental_id', 'item_id')
-                    ->withPivot('quantity', 'penalty');
+                    ->withPivot('quantity', 'penalty'); 
     }
 
     public function ratings()
