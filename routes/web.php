@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\PaymentController;
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ItemController;
@@ -26,7 +27,7 @@ Route::get('/', [ProductController::class, 'home'])->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{item_name}', [ProductController::class, 'show'])->name('products.show');
 
-// Product reviews endpoints (used by product detail AJAX)
+// Product reviews endpoints 
 Route::get('/products/{productKey}/reviews', [ProductReviewController::class, 'index'])->name('products.reviews.index');
 Route::post('/products/{productKey}/reviews', [ProductReviewController::class, 'store'])->middleware('auth')->name('products.reviews.store');
 
@@ -39,7 +40,6 @@ Route::delete('/cart/{product}', [CartController::class, 'destroy'])->name('cart
 // OAuth (placeholder)
 Route::get('/auth/redirect/{provider}', fn () => abort(501))->name('social.redirect');
 
-
 // Footer
 Route::view('/cara-sewa', 'public.cara-sewa')->name('cara-sewa');
 Route::view('/cara-pengembalian', 'public.cara-pengembalian')->name('cara-pengembalian');
@@ -47,38 +47,45 @@ Route::view('/tentang-kami', 'public.tentang-kami')->name('tentang-kami');
 Route::view('/syarat-ketentuan', 'public.s&k')->name('syarat-ketentuan');
 Route::view('/kontak', 'public.kontak')->name('kontak');
 
-
 /**
  * -------------------------
  *  AUTHENTICATED ROUTES
  * -------------------------
  */
 
-// Checkout (WAJIB login). Jika belum login, Laravel redirect ke /login 
 Route::middleware('auth')->group(function () {
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
-
-    // prifil
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/verify', [ProfileController::class, 'verify'])->name('profile.verify');
     Route::get('/profile/edit-form', [ProfileController::class, 'showEditForm'])->name('profile.edit.form');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    // profile ganti pass
+    
+    // Profile ganti password
     Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password'); 
     Route::put('/profile/change-password', [ProfileController::class, 'updatePassword'])->name('profile.password.update'); 
-    //keranjang
+    
+    // Keranjang
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
     Route::patch('/cart/{cart_item}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{cart_item}', [CartController::class, 'destroy'])->name('cart.destroy');
+    
+    // Checkout 
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+    Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+    
+    // Payment
+    Route::get('/payment', [PaymentController::class, 'show'])->name('payment.show');
+    Route::post('/payment/upload-proof', [PaymentController::class, 'uploadProof'])->name('payment.upload-proof');
+
+    Route::get('/profile/orders', [ProfileController::class, 'orders'])->name('profile.orders');
 });
+
 /**
  * -------------------------
  *  ADMIN ROUTES
  * -------------------------
  */
-// Checkout (WAJIB login). Jika belum login, Laravel redirect ke /login dan balik lagi ke /checkout setelah sukses.
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
@@ -101,5 +108,3 @@ Route::middleware(['auth', 'admin'])
     });
 
 require __DIR__.'/auth.php';
-
-

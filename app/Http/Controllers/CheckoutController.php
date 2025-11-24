@@ -2,97 +2,192 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CartItem;
+use App\Models\Rental;
+use App\Models\DetailRental;
+use App\Models\Buy;
+use App\Models\DetailBuy; // PASTIKAN INI YANG DIGUNAKAN
+use App\Models\Item;
 use Illuminate\Http\Request;
-use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CheckoutController extends Controller
 {
-    private const SESSION_KEY = 'cart.items';
-
-    /**
-     * Halaman checkout (wajib login — sudah diproteksi middleware 'auth' di routes).
-     */
-    public function index()
+    // Show checkout form
+    public function show()
     {
-        // Ambil isi cart dari session
-        $items = collect(session(self::SESSION_KEY, [])); // [id => qty]
+        $cartItems = CartItem::with('item')
+            ->where('user_id', Auth::id())
+            ->get();
 
-        if ($items->isEmpty()) {
-            return redirect()->route('cart.index')->with('warning', 'Keranjang masih kosong.');
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('cart.index')
+                           ->with('error', 'Keranjang kosong. Silakan tambah produk terlebih dahulu.');
         }
 
-        $products = Product::whereIn('id', $items->keys())->get()->keyBy('id');
+        $rentalItems = $cartItems->where('type', 'rent');
+        $purchaseItems = $cartItems->where('type', 'buy');
 
-        $rows = $items->map(function ($qty, $productId) use ($products) {
-            $p = $products->get($productId);
-            if (!$p) return null;
+        $hasRentalItems = $rentalItems->count() > 0;
+        $hasPurchaseItems = $purchaseItems->count() > 0;
 
-            return [
-                'product' => $p,
-                'qty'     => (int) $qty,
-                'price'   => (int) $p->price,
-                'total'   => (int) $p->price * (int) $qty,
-            ];
-        })->filter();
+        // Calculate base total amount (without delivery)
+        $totalAmount = $cartItems->sum(function($item) {
+            return $item->total_price;
+        });
 
-        if ($rows->isEmpty()) {
-            return redirect()->route('cart.index')->with('warning', 'Keranjang masih kosong.');
-        }
-
-        $subtotal = (int) $rows->sum('total');
-
-        return view('checkout.index', [
-            'rows'     => $rows,
-            'subtotal' => $subtotal,
-            // bisa tambahkan ongkir, pajak, dsb di sini
-        ]);
+        return view('checkout.show', compact(
+            'rentalItems',
+            'purchaseItems', 
+            'hasRentalItems',
+            'hasPurchaseItems',
+            'totalAmount'
+        ));
     }
 
-    /**
-     * Proses checkout sederhana (contoh).
-     * Di sini biasanya:
-     * - validasi alamat & metode bayar
-     * - buat order + order_items
-     * - panggil gateway pembayaran
-     * - kosongkan cart session
-     */
+    // Process checkout
     public function process(Request $request)
     {
-        $data = $request->validate([
-            'name'    => ['required', 'string', 'max:100'],
-            'phone'   => ['required', 'string', 'max:30'],
-            'address' => ['required', 'string', 'max:500'],
-        ]);
+        return DB::transaction(function () use ($request) {
+            
+            $cartItems = CartItem::with('item')
+                ->where('user_id', Auth::id())
+                ->get();
 
-        $items = collect(session(self::SESSION_KEY, []));
-        if ($items->isEmpty()) {
-            return redirect()->route('cart.index')->with('warning', 'Keranjang masih kosong.');
-        }
+            if ($cartItems->isEmpty()) {
+                return redirect()->route('cart.index')
+                               ->with('error', 'Keranjang kosong. Silakan tambah produk terlebih dahulu.');
+            }
 
-        // ---- pseudo create order (silakan ganti dengan implementasi real) ----
-        // $order = \DB::transaction(function () use ($items, $data) {
-        //     $order = auth()->user()->orders()->create([
-        //         'name' => $data['name'],
-        //         'phone' => $data['phone'],
-        //         'address' => $data['address'],
-        //         'status' => 'pending',
-        //     ]);
-        //     $products = Product::whereIn('id', $items->keys())->get()->keyBy('id');
-        //     foreach ($items as $pid => $qty) {
-        //         if (!isset($products[$pid])) continue;
-        //         $order->items()->create([
-        //             'product_id' => $pid,
-        //             'qty'        => (int) $qty,
-        //             'price'      => (int) $products[$pid]->price,
-        //         ]);
-        //     }
-        //     return $order;
-        // });
+            $rentalItems = $cartItems->where('type', 'rent');
+            $purchaseItems = $cartItems->where('type', 'buy');
+            $hasRental = $rentalItems->count() > 0;
+            $hasPurchase = $purchaseItems->count() > 0;
 
-        // Kosongkan cart session setelah order dibuat
-        session()->forget(self::SESSION_KEY);
+            // Validate request
+            $validationRules = [
+                'payment_method' => 'required|in:qris,transfer,cash',
+                'delivery_option' => 'required|in:pickup,delivery',
+            ];
 
-        // return redirect()->route('orders.show', $order)->with('success', 'Order berhasil dibuat.');
-        return redirect()->route('home')->with('success', 'Checkout berhasil (contoh). Implementasi order dapat ditambahkan.');
+            // Add shipping address validation if delivery is selected
+            if ($request->delivery_option === 'delivery') {
+                $validationRules['shipping_address'] = 'required|string|min:10';
+            }
+
+            if ($hasRental) {
+                $validationRules['identity_type'] = 'required|in:ktp,ktm,sim';
+                $validationRules['identity_file'] = 'required|file|mimes:jpg,jpeg,png,pdf|max:2048';
+            }
+
+            $validated = $request->validate($validationRules);
+
+            // Calculate delivery fee - Rp 18.000 untuk semua area Jogja
+            $deliveryFee = $validated['delivery_option'] === 'delivery' ? 18000 : 0;
+
+            // Process file upload for rental
+            $identityPath = null;
+            if ($hasRental && $request->hasFile('identity_file')) {
+                $identityPath = $request->file('identity_file')->store('identities', 'public');
+            }
+
+            $latestRental = null;
+            $latestBuy = null;
+
+           // ========== PROCESS RENTAL ITEMS ==========
+            if ($hasRental) {
+                $rentalTotal = $rentalItems->sum(function($item) {
+                    return $item->total_price;
+                }) + $deliveryFee;
+
+                // Calculate rental dates
+                $startDate = now();
+                $endDate = now()->addDays($rentalItems->max('days') ?? 1);
+
+                // Create rental record
+                $rental = Rental::create([
+                    'user_id' => Auth::id(),
+                    'rental_start_date' => $startDate,
+                    'rental_end_date' => $endDate,
+                    'total_price' => $rentalTotal,
+                    'payment_method' => $validated['payment_method'],
+                    'payment_status' => 'menunggu_pembayaran',
+                    'order_status' => 'menunggu_verifikasi',
+                    'delivery_option' => $validated['delivery_option'],
+                    'identity_file' => $identityPath,
+                    'identity_type' => $validated['identity_type'],
+                    'shipping_address' => $validated['shipping_address'] ?? null,
+                ]);
+
+                $latestRental = $rental;
+
+                // Create rental details - SESUAI MODEL (TIDAK ADA DAYS)
+                foreach ($rentalItems as $cartItem) {
+                    DetailRental::create([
+                        'rental_id' => $rental->rental_id,
+                        'item_id' => $cartItem->item_id,
+                        'quantity' => $cartItem->quantity,
+                        'penalty' => 0,
+                    ]);
+
+                    // Update rental stock
+                    $cartItem->item->decrement('rental_stock', $cartItem->quantity);
+                }
+            }
+
+            // ========== PROCESS PURCHASE ITEMS ==========
+            if ($hasPurchase) {
+                $purchaseTotal = $purchaseItems->sum(function($item) {
+                    return $item->total_price;
+                }) + $deliveryFee;
+
+                // Create buy record
+                $buy = Buy::create([
+                    'user_id' => Auth::id(),
+                    'total_price' => $purchaseTotal,
+                    'payment_method' => $validated['payment_method'],
+                    'payment_status' => 'menunggu_pembayaran',
+                    'order_status' => 'menunggu_verifikasi',
+                    'delivery_option' => $validated['delivery_option'],
+                    'shipping_address' => $validated['shipping_address'] ?? null,
+                ]);
+
+                $latestBuy = $buy;
+
+                // Create buy details and update stock - GUNAKAN DETAILBUY BUKAN DETAILORDER
+                foreach ($purchaseItems as $cartItem) {
+                    DetailBuy::create([
+                        'buy_id' => $buy->buy_id,
+                        'item_id' => $cartItem->item_id,
+                        'quantity' => $cartItem->quantity,
+                        'total_price' => $cartItem->total_price,
+                    ]);
+
+                    // Update sale stock
+                    $cartItem->item->decrement('sale_stock', $cartItem->quantity);
+                }
+            }
+
+            // Clear cart
+            CartItem::where('user_id', Auth::id())->delete();
+
+            // Redirect to payment page for non-cash payments
+            if ($validated['payment_method'] !== 'cash') {
+                // Store order info in session for payment page
+                session([
+                    'latest_rental' => $latestRental,
+                    'latest_buy' => $latestBuy
+                ]);
+
+                return redirect()->route('payment.show')
+                               ->with('success', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran.');
+            }
+
+            // For cash payments, show success message
+            return redirect()->route('profile.orders')
+               ->with('success', 'Pesanan berhasil dibuat! Silakan tunjukkan bukti ini saat pengambilan di toko.');
+        });
     }
 }

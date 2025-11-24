@@ -104,4 +104,14 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.edit')->with('success', 'Password berhasil diubah!');
     }
+
+      public function orders()
+    {
+        // Get user's orders
+        $user = Auth::user();
+        $rentals = \App\Models\Rental::where('user_id', $user->user_id)->latest()->get();
+        $buys = \App\Models\Buy::where('user_id', $user->user_id)->latest()->get();
+        
+        return view('profile.orders', compact('rentals', 'buys'));
+    }
 }

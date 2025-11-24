@@ -124,5 +124,6 @@ return [
     ],
 
     App\Providers\ViewServiceProvider::class,
+    CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class,
 
 ];
