@@ -9,27 +9,40 @@ use Carbon\Carbon;
 
 class RentalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rentals = Rental::with('user')
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $query = Rental::with('user', 'details.item');
+        
+        if ($request->has('q') && $request->q) {
+            $search = $request->q;
+            $query->where(function($q) use ($search) {
+                $q->where('rental_id', 'LIKE', "%{$search}%")
+                  ->orWhere('user_id', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function($userQuery) use ($search) {
+                      $userQuery->where('full_name', 'LIKE', "%{$search}%")
+                               ->orWhere('username', 'LIKE', "%{$search}%")
+                               ->orWhere('email', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
 
-        $rentals->getCollection()->transform(function ($rental) {
-            $rental->computed_status = $this->computeStatus($rental);
-            return $rental;
-        });
+        if ($request->has('status') && $request->status) {
+            $query->where('order_status', $request->status);
+        }
+
+        $rentals = $query->orderByDesc('created_at')->paginate(20);
 
         return view('admin.rentals.index', compact('rentals'));
     }
 
-    public function show(Rental $rental)
+   public function show(Rental $rental)
     {
-        $rental->load('user', 'items');
+        $rental->load('user', 'details.item'); 
+        
+        $denda = $this->hitungDenda($rental);
+        $totalBayar = ($rental->total_price ?? 0) + $denda;
 
-        $computedStatus = $this->computeStatus($rental);
-
-        return view('admin.rentals.show', compact('rental', 'computedStatus'));
+        return view('admin.rentals.show', compact('rental', 'denda', 'totalBayar'));
     }
 
     public function update(Request $request, Rental $rental)
@@ -37,7 +50,23 @@ class RentalController extends Controller
         $validated = $request->validate([
             'return_date' => ['nullable', 'date'],
             'total_price' => ['nullable', 'numeric', 'min:0'],
+            'order_status' => ['required', 'in:menunggu_verifikasi,dikonfirmasi,sedang_berjalan,selesai,dibatalkan'],
+            'payment_status' => ['required', 'in:menunggu_pembayaran,terbayar,gagal'],
         ]);
+
+        if ($request->order_status === 'sedang_berjalan' && $rental->payment_status !== 'terbayar') {
+            return redirect()
+                ->route('admin.rentals.show', $rental)
+                ->with('error', 'Tidak bisa mengubah status ke "Sedang Berjalan" karena pembayaran belum terverifikasi.');
+        }
+
+        if ($request->order_status === 'selesai' && !$rental->return_date) {
+            $validated['return_date'] = Carbon::today();
+        }
+
+        if ($request->payment_status === 'terbayar' && !$rental->paid_at) {
+            $validated['paid_at'] = Carbon::now();
+        }
 
         $rental->update($validated);
 
@@ -46,29 +75,38 @@ class RentalController extends Controller
             ->with('success', 'Data rental berhasil diperbarui.');
     }
 
-    private function computeStatus(Rental $rental): string
+    public function updateDenda(Request $request, Rental $rental)
     {
-        $today = Carbon::today();
+        $validated = $request->validate([
+            'penalty' => ['required', 'numeric', 'min:0'],
+        ]);
 
+        foreach ($rental->details as $detail) {
+            $detail->update(['penalty' => $validated['penalty']]);
+        }
+
+        return redirect()
+            ->route('admin.rentals.show', $rental)
+            ->with('success', 'Denda berhasil diperbarui.');
+    }
+
+    private function hitungDenda(Rental $rental): float
+    {
+        $denda = 0;
+        
         if ($rental->return_date) {
-            return 'returned';
+            return $rental->details->sum('penalty');
         }
 
-        if ($today->lt(Carbon::parse($rental->rental_start_date))) {
-            return 'upcoming';
+        $hariIni = Carbon::today();
+        $tenggat = Carbon::parse($rental->rental_end_date);
+
+        if ($rental->order_status === 'sedang_berjalan' && $hariIni->gt($tenggat)) {
+            $hariTerlambat = $hariIni->diffInDays($tenggat);
+            $dendaPerHari = ($rental->total_price ?? 0) * 0.1;
+            $denda = $hariTerlambat * $dendaPerHari;
         }
 
-        if ($today->between(
-            Carbon::parse($rental->rental_start_date),
-            Carbon::parse($rental->rental_end_date)
-        )) {
-            return 'on_rent';
-        }
-
-        if (!$rental->return_date && $today->gt(Carbon::parse($rental->rental_end_date))) {
-            return 'late';
-        }
-
-        return 'unknown';
+        return $denda;
     }
 }

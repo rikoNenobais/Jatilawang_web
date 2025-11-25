@@ -1,4 +1,4 @@
-@extends('admin.layout')
+@extends('layout.layout-admin')
 
 @section('title', 'Edit Produk')
 @section('header', 'Edit Produk')

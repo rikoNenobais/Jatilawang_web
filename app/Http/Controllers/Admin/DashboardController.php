@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Buy;
 use App\Models\Rental;
 use App\Models\Item;
 use App\Models\User;
@@ -17,9 +18,13 @@ class DashboardController extends Controller
         $totalUsers   = User::count();
         $totalReviews = Review::count();
 
-        $totalRevenueRentals = Rental::sum('total_price');
+        // Hanya pendapatan yang statusnya terbayar/terverifikasi
+        $totalRevenueRentals = Rental::where('payment_status', 'terbayar')->sum('total_price');
+        $totalRevenueBuy = Buy::where('payment_status', 'terbayar')->sum('total_price');
+        $totalProfit = $totalRevenueRentals + $totalRevenueBuy;
 
         $latestRentals = Rental::with('user')
+            ->where('payment_status', 'terbayar') // Hanya yang sudah bayar
             ->orderByDesc('created_at')
             ->take(5)
             ->get();
@@ -30,6 +35,8 @@ class DashboardController extends Controller
             'totalUsers',
             'totalReviews',
             'totalRevenueRentals',
+            'totalRevenueBuy',
+            'totalProfit',
             'latestRentals'
         ));
     }

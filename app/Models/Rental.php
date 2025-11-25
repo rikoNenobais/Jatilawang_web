@@ -15,7 +15,7 @@ class Rental extends Model
         'rental_end_date',
         'return_date', 
         'total_price',
-        // FIELD BARU SESUAI MIGRATION
+
         'payment_method',
         'payment_status',
         'order_status', 
@@ -25,7 +25,6 @@ class Rental extends Model
         'identity_type',
         'shipping_address',
         'paid_at'
-        // TIDAK ADA delivery_fee - SESUAI MIGRATION
     ];
 
     protected $dates = ['rental_start_date', 'rental_end_date', 'return_date'];
