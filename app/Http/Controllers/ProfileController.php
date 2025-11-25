@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Models\Transaction;
 
 class ProfileController extends Controller
 {
@@ -105,13 +107,20 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('success', 'Password berhasil diubah!');
     }
 
-      public function orders()
+    public function orders()
     {
-        // Get user's orders
         $user = Auth::user();
-        $rentals = \App\Models\Rental::where('user_id', $user->user_id)->latest()->get();
-        $buys = \App\Models\Buy::where('user_id', $user->user_id)->latest()->get();
         
-        return view('profile.orders', compact('rentals', 'buys'));
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Ambil transactions user dengan relasi rentals dan buys
+        $transactions = Transaction::with(['rentals', 'buys'])
+            ->where('user_id', $user->user_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('profile.orders', compact('transactions'));
     }
 }

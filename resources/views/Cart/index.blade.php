@@ -3,11 +3,25 @@
 @section('title', 'Keranjang - Jatilawang Adventure')
 
 @section('content')
-<section class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+  {{-- BACKGROUND FOTO UNTUK SELURUH HALAMAN --}}
+    <div class="fixed inset-0 -z-10">
+        <img src="{{ asset('storage/hero/peaks.jpg') }}" 
+            alt="Pegunungan Jatilawang Adventure" 
+            class="w-full h-full object-cover">
+        {{-- Overlay Gradient --}}
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/80 via-emerald-800/70 to-teal-700/80"></div>
+    </div>
+
+    {{-- Efek Blur --}}
+    <div class="pointer-events-none absolute -top-40 -left-40 h-[700px] w-[700px] rounded-full bg-emerald-900/20 blur-3xl -z-10"></div>
+
+    {{-- ===================== CART SECTION ===================== --}}
+
+    <section class="min-h-screen py-8 relative">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Keranjang Belanja</h1>
-            <p class="text-gray-600 mt-2">Kelola produk yang ingin Anda sewa atau beli</p>
+            <h1 class="text-3xl font-bold text-white">Keranjang Belanja</h1>
+            <p class="text-emerald-200 mt-2">Kelola produk yang ingin Anda sewa atau beli</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -18,7 +32,7 @@
                 <div class="mb-8">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-1 h-8 bg-emerald-500 rounded"></div>
-                        <h2 class="text-xl font-bold text-gray-900">Produk Disewa</h2>
+                        <h2 class="text-xl font-bold text-white">Produk Disewa</h2>
                         <span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
                             {{ $rentalItems->count() }} item
                         </span>
@@ -105,7 +119,7 @@
                 <div class="mb-8">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-1 h-8 bg-orange-500 rounded"></div>
-                        <h2 class="text-xl font-bold text-gray-900">Produk Dibeli</h2>
+                        <h2 class="text-xl font-bold text-white">Produk Dibeli</h2>
                         <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
                             {{ $purchaseItems->count() }} item
                         </span>

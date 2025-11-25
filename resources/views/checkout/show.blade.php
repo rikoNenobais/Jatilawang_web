@@ -3,11 +3,25 @@
 @section('title', 'Checkout - Jatilawang Adventure')
 
 @section('content')
-<section class="min-h-screen bg-gray-50 py-8">
+{{-- BACKGROUND FOTO UNTUK SELURUH HALAMAN --}}
+    <div class="fixed inset-0 -z-10">
+        <img src="{{ asset('storage/hero/peaks.jpg') }}" 
+            alt="Pegunungan Jatilawang Adventure" 
+            class="w-full h-full object-cover">
+        {{-- Overlay Gradient --}}
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/80 via-emerald-800/70 to-teal-700/80"></div>
+    </div>
+
+    {{-- Efek Blur --}}
+    <div class="pointer-events-none absolute -top-40 -left-40 h-[700px] w-[700px] rounded-full bg-emerald-900/20 blur-3xl -z-10"></div>
+
+    {{-- ===================== CART SECTION ===================== --}}
+
+<section class="min-h-screen py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Checkout</h1>
-            <p class="text-gray-600 mt-2">Lengkapi data untuk menyelesaikan pesanan</p>
+            <h1 class="text-3xl font-bold text-white">Checkout</h1>
+            <p class="text-white mt-2">Lengkapi data untuk menyelesaikan pesanan</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -97,7 +111,7 @@
                     @endif
 
                     <button type="submit" 
-                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-6 rounded-lg font-semibold text-lg transition">
+                            class="w-full bg-amber-500 hover:bg-amber-600 text-white py-4 px-6 rounded-lg font-semibold text-lg transition">
                         Bayar Sekarang - Rp <span id="finalTotal">{{ number_format($totalAmount, 0, ',', '.') }}</span>
                     </button>
                 </form>
@@ -105,13 +119,16 @@
 
             {{-- Order Summary --}}
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h3>
                     
                     {{-- Rental Items --}}
                     @if($rentalItems->count() > 0)
                     <div class="mb-4 pb-4 border-b border-gray-200">
-                        <h4 class="font-medium text-gray-700 mb-2">Produk Disewa</h4>
+                        <div class="flex items-center gap-2 mb-2"> 
+                            <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                            <h4 class="font-medium text-gray-700">Produk Dibeli</h4>
+                        </div>
                         @foreach($rentalItems as $item)
                         <div class="flex justify-between text-sm text-gray-600 mb-1">
                             <span>{{ $item->item->item_name }} ({{ $item->days }} hari)</span>
@@ -124,7 +141,10 @@
                     {{-- Purchase Items --}}
                     @if($purchaseItems->count() > 0)
                     <div class="mb-4 pb-4 border-b border-gray-200">
-                        <h4 class="font-medium text-gray-700 mb-2">Produk Dibeli</h4>
+                         <div class="flex items-center gap-2 mb-2"> 
+                            <span class="w-3 h-3 bg-orange-500 rounded-full"></span>
+                            <h4 class="font-medium text-gray-700">Produk Dibeli</h4>
+                        </div>
                         @foreach($purchaseItems as $item)
                         <div class="flex justify-between text-sm text-gray-600 mb-1">
                             <span>{{ $item->item->item_name }}</span>

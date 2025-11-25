@@ -1,66 +1,58 @@
 <?php
-
+// app/Http/Controllers/PaymentController.php
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
-    public function show()
+    public function show($transactionId)
     {
-        // CARI SEMUA ORDER YANG BELUM BAYAR (BUKAN HANYA TERBARU)
-        $unpaidRentals = \App\Models\Rental::where('user_id', Auth::id())
-            ->where('payment_status', 'menunggu_pembayaran')
-            ->whereNull('payment_proof')
-            ->where('payment_method', '!=', 'cash')
-            ->get();
+        $transaction = Transaction::with(['rentals', 'buys', 'user'])
+            ->where('transaction_id', $transactionId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-        $unpaidBuys = \App\Models\Buy::where('user_id', Auth::id())
-            ->where('payment_status', 'menunggu_pembayaran')
-            ->whereNull('payment_proof')
-            ->where('payment_method', '!=', 'cash')
-            ->get();
-
-        // JIKA ADA LEBIH DARI 1 ORDER, TAMPILKAN SEMUA
-        if ($unpaidRentals->count() > 0 || $unpaidBuys->count() > 0) {
-            return view('payment.show', [
-                'unpaidRentals' => $unpaidRentals,
-                'unpaidBuys' => $unpaidBuys
-            ]);
+        // Pastikan transaction masih menunggu pembayaran
+        if ($transaction->payment_status !== 'menunggu_pembayaran') {
+            return redirect()->route('profile.orders')
+                           ->with('error', 'Transaksi ini sudah diproses.');
         }
 
-        return redirect()->route('profile.orders')->with('error', 'Tidak ada pesanan yang perlu pembayaran.');
+        return view('payment.show', compact('transaction'));
     }
 
-    public function uploadProof(Request $request)
+    public function uploadProof(Request $request, $transactionId)
     {
         $request->validate([
-            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'order_type' => 'required|in:rental,buy',
-            'order_id' => 'required|integer'
+            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
         ]);
+
+        $transaction = Transaction::where('transaction_id', $transactionId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
         // Store payment proof
         $proofPath = $request->file('payment_proof')->store('payment-proofs', 'public');
 
-        // Update order with payment proof
-        if ($request->order_type === 'rental') {
-            $order = \App\Models\Rental::where('rental_id', $request->order_id)
-                                     ->where('user_id', Auth::id())
-                                     ->firstOrFail();
-        } else {
-            $order = \App\Models\Buy::where('buy_id', $request->order_id)
-                                  ->where('user_id', Auth::id())
-                                  ->firstOrFail();
-        }
-
-        $order->update([
+        // Update transaction
+        $transaction->update([
             'payment_proof' => $proofPath,
-            'payment_status' => 'menunggu_pembayaran'
+            'payment_status' => 'menunggu_verifikasi'
         ]);
 
         return redirect()->route('profile.orders')
                        ->with('success', 'Bukti pembayaran berhasil diupload! Mohon menunggu verifikasi admin.');
+    }
+
+    // METHOD LAMA untuk backward compatibility (optional)
+    public function showOld()
+    {
+        // Redirect ke halaman orders kalau ada yang akses route lama
+        return redirect()->route('profile.orders')
+                       ->with('info', 'Silakan buat pesanan baru untuk melakukan pembayaran.');
     }
 }

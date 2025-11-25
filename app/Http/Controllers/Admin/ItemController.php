@@ -116,6 +116,13 @@ class ItemController extends Controller
             'is_sellable'         => ['required', 'boolean'],
         ]);
 
+        $validated['rental_stock'] = $validated['rental_stock'] ?? 0;
+        $validated['sale_stock'] = $validated['sale_stock'] ?? 0;
+        $validated['penalty_per_days'] = $validated['penalty_per_days'] ?? 0;
+
+        $validated['rental_price_per_day'] = $validated['rental_price_per_day'] ?? null;
+        $validated['sale_price'] = $validated['sale_price'] ?? null;
+
         $item->update($validated);
 
         return redirect()

@@ -92,12 +92,6 @@
                                 'dibatalkan' => 'bg-red-100 text-red-800 border-red-200'
                             ];
 
-                            $paymentColors = [
-                                'menunggu_pembayaran' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                                'terbayar' => 'bg-green-100 text-green-800 border-green-200',
-                                'gagal' => 'bg-red-100 text-red-800 border-red-200'
-                            ];
-
                             $statusLabels = [
                                 'menunggu_verifikasi' => 'Menunggu Verifikasi',
                                 'dikonfirmasi' => 'Dikonfirmasi',
@@ -116,11 +110,21 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Status Pembayaran</label>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $paymentColors[$rental->payment_status] ?? 'bg-gray-100 text-gray-800 border-gray-200' }}">
-                                {{ str_replace('_', ' ', $rental->payment_status) }}
-                            </span>
-                            @if($rental->paid_at)
-                            <p class="text-xs text-gray-500 mt-1">Pada {{ Carbon::parse($rental->paid_at)->format('d M Y H:i') }}</p>
+                            @if($rental->transaction)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                                    @if($rental->transaction->payment_status === 'terbayar') bg-green-100 text-green-800 border-green-200
+                                    @elseif($rental->transaction->payment_status === 'menunggu_verifikasi') bg-yellow-100 text-yellow-800 border-yellow-200
+                                    @elseif($rental->transaction->payment_status === 'menunggu_pembayaran') bg-blue-100 text-blue-800 border-blue-200
+                                    @else bg-red-100 text-red-800 border-red-200 @endif">
+                                    {{ str_replace('_', ' ', $rental->transaction->payment_status) }}
+                                </span>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    TRX-{{ $rental->transaction->transaction_id }}
+                                </p>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border-gray-200">
+                                    Belum ada transaksi
+                                </span>
                             @endif
                         </div>
 
@@ -144,7 +148,7 @@
                 </div>
             </div>
 
-            {{-- Item yg dipinjam: --}}
+            {{-- Item yang Dipinjam --}}
             @if($rental->details->count())
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -168,7 +172,6 @@
                         <tbody class="divide-y divide-gray-200">
                             @foreach($rental->details as $detail)
                             @php
-                                // Ambil harga dari item - gunakan rental_price_per_day
                                 $hargaPerHari = $detail->item->rental_price_per_day ?? 0;
                                 $subtotal = $hargaPerHari * $detail->quantity;
                             @endphp
@@ -199,7 +202,6 @@
                             </tr>
                             @endforeach
                             
-                            {{-- Total Row --}}
                             @php
                                 $totalHarga = 0;
                                 foreach($rental->details as $detail) {
@@ -222,7 +224,7 @@
             </div>
             @endif
 
-            {{-- Informasi jaminan dan dokumen --}}
+            {{-- Informasi Jaminan & Dokumen --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -253,13 +255,35 @@
                             <p class="text-sm text-gray-500">Tidak ada file</p>
                             @endif
                         </div>
+                        
+                         @if($rental->transaction)
+                        <div>
+                            <a href="{{ route('admin.transactions.show', $rental->transaction) }}" 
+                               class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Lihat Detail Transaksi
+                            </a>
+                        </div>
+                        @endif
+
                     </div>
 
                     <div class="space-y-3">
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
+                            @if($rental->transaction)
+                                <p class="text-sm text-gray-900 capitalize">{{ $rental->transaction->payment_method ?? '-' }}</p>
+                            @else
+                                <p class="text-sm text-gray-500">Belum ada transaksi</p>
+                            @endif
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Bukti Pembayaran</label>
-                            @if($rental->payment_proof)
-                            <a href="{{ asset('storage/' . $rental->payment_proof) }}" target="_blank"
+                            @if($rental->transaction && $rental->transaction->payment_proof)
+                            <a href="{{ asset('storage/' . $rental->transaction->payment_proof) }}" target="_blank"
                                class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -273,17 +297,14 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
-                            <p class="text-sm text-gray-900 capitalize">{{ $rental->payment_method ?? '-' }}</p>
-                        </div>
-
-                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Opsi Pengiriman</label>
                             <p class="text-sm text-gray-900 capitalize">{{ $rental->delivery_option ?? '-' }}</p>
                             @if($rental->delivery_option === 'delivery' && $rental->shipping_address)
                             <p class="text-xs text-gray-500 mt-1">{{ $rental->shipping_address }}</p>
                             @endif
                         </div>
+
+                       
                     </div>
                 </div>
             </div>
@@ -305,15 +326,6 @@
                             <option value="sedang_berjalan" {{ $rental->order_status == 'sedang_berjalan' ? 'selected' : '' }}>Sedang Berjalan</option>
                             <option value="selesai" {{ $rental->order_status == 'selesai' ? 'selected' : '' }}>Selesai</option>
                             <option value="dibatalkan" {{ $rental->order_status == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
-                        <select name="payment_status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="menunggu_pembayaran" {{ $rental->payment_status == 'menunggu_pembayaran' ? 'selected' : '' }}>Menunggu Pembayaran</option>
-                            <option value="terbayar" {{ $rental->payment_status == 'terbayar' ? 'selected' : '' }}>Terbayar</option>
-                            <option value="gagal" {{ $rental->payment_status == 'gagal' ? 'selected' : '' }}>Gagal</option>
                         </select>
                     </div>
 
@@ -361,12 +373,12 @@
                         </svg>
                         <span>Dibuat: {{ $rental->created_at->diffForHumans() }}</span>
                     </div>
-                    @if($rental->paid_at)
+                    @if($rental->transaction && $rental->transaction->paid_at)
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Dibayar: {{ Carbon::parse($rental->paid_at)->diffForHumans() }}</span>
+                        <span>Dibayar: {{ Carbon::parse($rental->transaction->paid_at)->diffForHumans() }}</span>
                     </div>
                     @endif
                 </div>

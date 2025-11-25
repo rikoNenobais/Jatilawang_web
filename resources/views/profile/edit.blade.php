@@ -54,13 +54,17 @@
                                 </svg>
                                 Ubah Kata Sandi
                             </a>
-                            <a href="#" 
+                            
+                            {{-- Hanya tampilkan untuk customer --}}
+                            @if(auth()->user()->role === 'customer')
+                            <a href="{{ route('profile.orders') }}" 
                                class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                 </svg>
                                 Riwayat Pesanan
                             </a>
+                            @endif
                         </nav>
                     </div>
                 </div>
@@ -126,6 +130,7 @@
                         <h3 class="text-lg font-semibold text-blue-900 mb-2">Informasi Akun</h3>
                         <div class="space-y-2 text-sm text-blue-800">
                             <p><strong>ID Pengguna:</strong> {{ $user->user_id }}</p>
+                            <p><strong>Role:</strong> {{ ucfirst($user->role) }}</p>
                             <p><strong>Bergabung sejak:</strong> {{ $user->created_at->format('d F Y') }}</p>
                             <p><strong>Terakhir diperbarui:</strong> {{ $user->updated_at->format('d F Y H:i') }}</p>
                         </div>

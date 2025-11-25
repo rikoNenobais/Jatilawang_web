@@ -51,22 +51,7 @@ class RentalController extends Controller
             'return_date' => ['nullable', 'date'],
             'total_price' => ['nullable', 'numeric', 'min:0'],
             'order_status' => ['required', 'in:menunggu_verifikasi,dikonfirmasi,sedang_berjalan,selesai,dibatalkan'],
-            'payment_status' => ['required', 'in:menunggu_pembayaran,terbayar,gagal'],
         ]);
-
-        if ($request->order_status === 'sedang_berjalan' && $rental->payment_status !== 'terbayar') {
-            return redirect()
-                ->route('admin.rentals.show', $rental)
-                ->with('error', 'Tidak bisa mengubah status ke "Sedang Berjalan" karena pembayaran belum terverifikasi.');
-        }
-
-        if ($request->order_status === 'selesai' && !$rental->return_date) {
-            $validated['return_date'] = Carbon::today();
-        }
-
-        if ($request->payment_status === 'terbayar' && !$rental->paid_at) {
-            $validated['paid_at'] = Carbon::now();
-        }
 
         $rental->update($validated);
 

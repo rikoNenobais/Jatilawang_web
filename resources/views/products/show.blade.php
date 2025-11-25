@@ -4,6 +4,7 @@
 
 @section('content')
 @php
+    use Illuminate\Support\Facades\Auth;
     $productImage = $item->url_image ?? ($item->img ?? null
         ? asset('storage/foto-produk/' . $item->img)
         : asset('storage/foto-produk/default.png'));
@@ -16,11 +17,15 @@
         <nav class="text-sm text-gray-500 mb-6">
             <ol class="flex items-center gap-2">
                 <li>
-                    <a href="/" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                    <a href="#" onclick="goBack()" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7 7-7M3 12h18"/>
                         </svg>
-                        Home
+                    </a>
+                </li>
+                <li>
+                    <a href="/" class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                        Beranda
                     </a>
                 </li>
                 <li class="mx-1">/</li>
@@ -95,55 +100,128 @@
                     $salePrice = $item->sale_price ?? 0;
                 @endphp
 
-                <div class="flex items-center gap-6 mb-6">
-                    <div class="inline-flex items-center gap-2" id="qty-control">
-                        <button type="button" class="qty-btn decrement w-9 h-9 bg-white border rounded-md text-lg" aria-label="Kurangi">-</button>
-                        <div id="qty-display" class="w-10 text-center font-medium">1</div>
-                        <button type="button" class="qty-btn increment w-9 h-9 bg-white border rounded-md text-lg" aria-label="Tambah">+</button>
-                        <input type="hidden" id="selectedQty" name="qty" value="1">
-                    </div>
+                {{-- Quantity controls - Hanya tampil untuk customer --}}
+                @auth
+                    @if(Auth::user()->role === 'customer')
+                        <div class="flex items-center gap-6 mb-6">
+                            <div class="inline-flex items-center gap-2" id="qty-control">
+                                <button type="button" class="qty-btn decrement w-9 h-9 bg-white border rounded-md text-lg" aria-label="Kurangi">-</button>
+                                <div id="qty-display" class="w-10 text-center font-medium">1</div>
+                                <button type="button" class="qty-btn increment w-9 h-9 bg-white border rounded-md text-lg" aria-label="Tambah">+</button>
+                                <input type="hidden" id="selectedQty" name="qty" value="1">
+                            </div>
 
-                    <div class="text-gray-800 text-lg font-semibold">
-                        @if($item->is_rentable && $item->rental_stock > 0)
-                            Total Sewa: <span id="totalPrice" class="text-emerald-800">
-                                Rp {{ number_format($rentalPrice, 0, ',', '.') }}
-                            </span>
-                        @elseif($item->is_sellable && $item->sale_stock > 0)
-                            Total Beli: <span id="totalPrice" class="text-orange-600">
-                                Rp {{ number_format($salePrice, 0, ',', '.') }}
-                            </span>
-                        @endif
+                            <div class="text-gray-800 text-lg font-semibold">
+                                @if($item->is_rentable && $item->rental_stock > 0)
+                                    Total Sewa: <span id="totalPrice" class="text-emerald-800">
+                                        Rp {{ number_format($rentalPrice, 0, ',', '.') }}
+                                    </span>
+                                @elseif($item->is_sellable && $item->sale_stock > 0)
+                                    Total Beli: <span id="totalPrice" class="text-orange-600">
+                                        Rp {{ number_format($salePrice, 0, ',', '.') }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                @else
+                    {{-- Tampilkan untuk guest --}}
+                    <div class="flex items-center gap-6 mb-6">
+                        <div class="inline-flex items-center gap-2" id="qty-control">
+                            <button type="button" class="qty-btn decrement w-9 h-9 bg-white border rounded-md text-lg" aria-label="Kurangi">-</button>
+                            <div id="qty-display" class="w-10 text-center font-medium">1</div>
+                            <button type="button" class="qty-btn increment w-9 h-9 bg-white border rounded-md text-lg" aria-label="Tambah">+</button>
+                            <input type="hidden" id="selectedQty" name="qty" value="1">
+                        </div>
+
+                        <div class="text-gray-800 text-lg font-semibold">
+                            @if($item->is_rentable && $item->rental_stock > 0)
+                                Total Sewa: <span id="totalPrice" class="text-emerald-800">
+                                    Rp {{ number_format($rentalPrice, 0, ',', '.') }}
+                                </span>
+                            @elseif($item->is_sellable && $item->sale_stock > 0)
+                                Total Beli: <span id="totalPrice" class="text-orange-600">
+                                    Rp {{ number_format($salePrice, 0, ',', '.') }}
+                                </span>
+                            @endif
+                        </div>
                     </div>
-                </div>
+                @endauth
 
                 {{-- Action buttons --}}
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-6">
-                    {{-- RENT BUTTON --}}
-                    @if($item->is_rentable && $item->rental_stock > 0)
-                    <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
-                        @csrf
-                        <input type="hidden" name="item_id" value="{{ $item->item_id }}">
-                        <input type="hidden" name="type" value="rent">
-                        <input type="hidden" name="quantity" id="rentQuantity" value="1">
-                        <input type="hidden" name="days" id="rentDays" value="1">
-                        <button type="submit" class="w-full bg-emerald-900 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition flex items-center justify-center gap-2">
-                            Masukkan Keranjang (Sewa)
-                        </button>
-                    </form>
-                    @endif
+                    @auth
+                        {{-- Untuk Customer --}}
+                        @if(Auth::user()->role === 'customer')
+                            {{-- RENT BUTTON --}}
+                            @if($item->is_rentable && $item->rental_stock > 0)
+                            <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
+                                @csrf
+                                <input type="hidden" name="item_id" value="{{ $item->item_id }}">
+                                <input type="hidden" name="type" value="rent">
+                                <input type="hidden" name="quantity" id="rentQuantity" value="1">
+                                <input type="hidden" name="days" id="rentDays" value="1">
+                                <button type="submit" class="w-full bg-emerald-900 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition flex items-center justify-center gap-2">
+                                    Masukkan Keranjang (Sewa)
+                                </button>
+                            </form>
+                            @endif
 
-                    {{-- BUY BUTTON --}}
-                    @if($item->is_sellable && $item->sale_stock > 0)
-                    <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
-                        @csrf
-                        <input type="hidden" name="item_id" value="{{ $item->item_id }}">
-                        <input type="hidden" name="type" value="buy">
-                        <input type="hidden" name="quantity" id="buyQuantity" value="1">
-                        <button type="submit" class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 transition flex items-center justify-center gap-2">
-                            Masukkan Keranjang (Beli)
-                        </button>
-                    </form>
-                    @endif
+                            {{-- BUY BUTTON --}}
+                            @if($item->is_sellable && $item->sale_stock > 0)
+                            <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
+                                @csrf
+                                <input type="hidden" name="item_id" value="{{ $item->item_id }}">
+                                <input type="hidden" name="type" value="buy">
+                                <input type="hidden" name="quantity" id="buyQuantity" value="1">
+                                <button type="submit" class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 transition flex items-center justify-center gap-2">
+                                    Masukkan Keranjang (Beli)
+                                </button>
+                            </form>
+                            @endif
+                        @else
+                            {{-- Untuk Admin - Tampilkan pesan info --}}
+                            <div class="w-full bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-medium text-blue-800">Anda login sebagai Admin</p>
+                                        <p class="text-xs text-blue-600 mt-1">Fitur keranjang tidak tersedia untuk akun admin.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @else
+                        {{-- Untuk Guest --}}
+                        {{-- RENT BUTTON --}}
+                        @if($item->is_rentable && $item->rental_stock > 0)
+                        <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
+                            @csrf
+                            <input type="hidden" name="item_id" value="{{ $item->item_id }}">
+                            <input type="hidden" name="type" value="rent">
+                            <input type="hidden" name="quantity" id="rentQuantity" value="1">
+                            <input type="hidden" name="days" id="rentDays" value="1">
+                            <button type="submit" class="w-full bg-emerald-900 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition flex items-center justify-center gap-2">
+                                Masukkan Keranjang (Sewa)
+                            </button>
+                        </form>
+                        @endif
+
+                        {{-- BUY BUTTON --}}
+                        @if($item->is_sellable && $item->sale_stock > 0)
+                        <form action="{{ route('cart.store') }}" method="POST" class="w-full sm:w-48">
+                            @csrf
+                            <input type="hidden" name="item_id" value="{{ $item->item_id }}">
+                            <input type="hidden" name="type" value="buy">
+                            <input type="hidden" name="quantity" id="buyQuantity" value="1">
+                            <button type="submit" class="w-full bg-orange-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-orange-700 transition flex items-center justify-center gap-2">
+                                Masukkan Keranjang (Beli)
+                            </button>
+                        </form>
+                        @endif
+                    @endauth
                 </div>
 
                 {{-- Stock badge --}}
@@ -278,20 +356,25 @@
             });
         });
 
-        // Quantity
-        document.querySelector('.qty-btn.decrement').addEventListener('click', () => {
-            let qty = Math.max(1, Number(document.getElementById('qty-display').textContent) - 1);
-            document.getElementById('qty-display').textContent = qty;
-            document.getElementById('selectedQty').value = qty;
-            updateTotals();
-        });
+        // Quantity controls - hanya jika ada
+        const decrementBtn = document.querySelector('.qty-btn.decrement');
+        const incrementBtn = document.querySelector('.qty-btn.increment');
+        
+        if (decrementBtn && incrementBtn) {
+            decrementBtn.addEventListener('click', () => {
+                let qty = Math.max(1, Number(document.getElementById('qty-display').textContent) - 1);
+                document.getElementById('qty-display').textContent = qty;
+                document.getElementById('selectedQty').value = qty;
+                updateTotals();
+            });
 
-        document.querySelector('.qty-btn.increment').addEventListener('click', () => {
-            let qty = Number(document.getElementById('qty-display').textContent) + 1;
-            document.getElementById('qty-display').textContent = qty;
-            document.getElementById('selectedQty').value = qty;
-            updateTotals();
-        });
+            incrementBtn.addEventListener('click', () => {
+                let qty = Number(document.getElementById('qty-display').textContent) + 1;
+                document.getElementById('qty-display').textContent = qty;
+                document.getElementById('selectedQty').value = qty;
+                updateTotals();
+            });
+        }
 
         // Details toggle
         (function(){
@@ -310,8 +393,16 @@
     });
 </script>
 
+<script>
+function goBack() {
+    window.history.back();
+}
+</script>
+
 {{-- Reviews & Related Products --}}
 @include('products.partials.reviews', ['item' => $item])
 @include('products.partials.related', ['relatedProducts' => $relatedProducts ?? []])
+
+
 
 @endsection

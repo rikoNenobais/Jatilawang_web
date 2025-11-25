@@ -9,14 +9,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <!-- Favicon utama -->
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('storage/logo/logo-jatilawang.png') }}?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('storage/logo/logo-jatilawang.png') }}?v=2">
     <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}?v=2">
     <link rel="apple-touch-icon" href="{{ asset('images/apple-touch-icon.png') }}?v=2">
     <meta name="theme-color" content="#065f46">
     
-    <!-- Style untuk hamburger menu -->
     <style>
         .hamburger-line {
             transition: all 0.3s ease;
@@ -50,7 +50,7 @@
                 </div>
 
                 {{-- Search Bar - Tampil di tablet/desktop --}}
-                <form action="{{ url('/products') }}" method="get" class="hidden md:block flex-1 max-w-2xl mx-8">
+                <form action="{{ route('products.index') }}" method="get" class="hidden md:block flex-1 max-w-2xl mx-8">
                     <label class="relative block">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
                             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -65,11 +65,11 @@
                     </label>
                 </form>
 
-                {{-- Desktop Navigation - Tampil di desktop --}}
+                {{-- Desktop Navigation --}}
                 @php
                 $nav = [
                     ['label'=>'Beranda','href'=>url('/'), 'active'=>request()->routeIs('home')],
-                    ['label' => 'Produk',   'href' => route('products.index'), 'active' => request()->routeIs('products.*')],
+                    ['label' => 'Produk', 'href' => route('products.index'), 'active' => request()->routeIs('products.*')],
                     ['label'=>'Tentang Kami','href'=>route('tentang-kami'), 'active' => request()->routeIs('tentang-kami')],
                     ['label'=>'Kontak','href'=>route('kontak') , 'active' => request()->routeIs('kontak')],
                 ];
@@ -83,24 +83,26 @@
                 @endforeach
                 </nav>
 
-                {{-- Desktop Icons - Tampil di tablet/desktop --}}
+                {{-- Desktop Icons --}}
                 <div class="hidden md:flex items-center gap-6 ml-auto">
-                    {{-- Cart --}}
+                    {{-- Cart - Hanya untuk customer --}}
                     @auth
-                        <a href="{{ route('cart.index') }}" class="relative text-gray-900 hover:opacity-80 transition" aria-label="Keranjang">
-                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
-                            </svg>
-                            <span data-cart-badge class="absolute -top-2 -right-2 min-w-[20px] min-h-[20px] px-1 rounded-full bg-emerald-700 text-white text-xs font-semibold text-center">
-                                0
-                            </span>
-                        </a>
+                        @if(auth()->user()->role === 'customer')
+                            <a href="{{ route('cart.index') }}" class="relative text-gray-900 hover:opacity-80 transition" aria-label="Keranjang">
+                                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+                                </svg>
+                                <span data-cart-badge class="absolute -top-2 -right-2 min-w-[20px] min-h-[20px] px-1 rounded-full bg-emerald-700 text-white text-xs font-semibold text-center">
+                                    {{ $totalItems ?? 0 }}
+                                </span>
+                            </a>
+                        @endif
                     @else
                         <button type="button" onclick="goToLoginWithRedirect()" class="relative text-gray-900 hover:opacity-80 cursor-pointer transition" aria-label="Keranjang (Login dulu)">
                             <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2z"/>
+                                    d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
                             </svg>
                             <span data-cart-badge class="absolute -top-2 -right-2 min-w-[20px] min-h-[20px] px-1 rounded-full bg-gray-400 text-white text-xs font-semibold text-center">
                                 0
@@ -108,7 +110,7 @@
                         </button>
                     @endauth
 
-                    {{-- Account --}}
+                    {{-- Account Menu --}}
                     <div class="relative">
                         @auth
                             <button type="button" id="user-menu-button" class="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 transition focus:outline-none group">
@@ -122,33 +124,55 @@
 
                             {{-- Dropdown Menu --}}
                             <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                                 {{-- Header Profil --}}
+                                {{-- Header Profil --}}
                                 <div class="px-4 py-3 border-b border-gray-100">
-                                    <p class="text-sm font-semibold text-gray-900">{{ auth()->user()->username ?? '' }}</p>
-                                    <p class="text-sm text-gray-500 truncate">{{ auth()->user()->email ?? '' }}</p>
+                                    <p class="text-sm font-semibold text-gray-900">{{ auth()->user()->full_name ?: auth()->user()->username }}</p>
+                                    <p class="text-sm text-gray-500 truncate">{{ auth()->user()->email }}</p>
+                                    <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full 
+                                        {{ auth()->user()->role === 'admin' ? 'bg-indigo-100 text-indigo-800' : 'bg-emerald-100 text-emerald-800' }}">
+                                        {{ strtoupper(auth()->user()->role) }}
+                                    </span>
                                 </div>
                                 
-                                {{-- Menu Items --}}
-                                <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                    Profil Saya
-                                </a>
-                                
-                                <a href="{{ route('profile.change-password') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                    </svg>
-                                    Ubah Kata Sandi
-                                </a>
-                                
-                                <a href="{{ route('profile.orders') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                    </svg>
-                                    Riwayat Pesanan
-                                </a>
+                                {{-- Menu Items berdasarkan role --}}
+                                @if(auth()->user()->role === 'admin')
+                                    {{-- Menu untuk Admin --}}
+                                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                        </svg>
+                                        Dashboard Admin
+                                    </a>
+                                    
+                                    <a href="{{ route('admin.profile.edit') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                        Profil Admin
+                                    </a>
+                                @else
+                                    {{-- Menu untuk Customer --}}
+                                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                        Profil Saya
+                                    </a>
+                                    
+                                    <a href="{{ route('profile.change-password') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        </svg>
+                                        Ubah Kata Sandi
+                                    </a>
+                                    
+                                    <a href="{{ route('profile.orders') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                        </svg>
+                                        Riwayat Pesanan
+                                    </a>
+                                @endif
                                 
                                 {{-- Separator --}}
                                 <div class="border-t border-gray-100 my-1"></div>
@@ -163,7 +187,6 @@
                                         Keluar
                                     </button>
                                 </form>
-                            
                             </div>
                         @else
                             <a href="{{ route('login') }}" class="text-gray-900 hover:opacity-80 transition" aria-label="Login">
@@ -176,7 +199,7 @@
                     </div>
                 </div>
 
-                {{-- Hamburger Button - Tampil di mobile saja --}}
+                {{-- Hamburger Button - Mobile --}}
                 <button id="hamburger-button" class="lg:hidden flex flex-col space-y-1.5 p-2">
                     <span class="hamburger-line block w-6 h-0.5 bg-gray-700"></span>
                     <span class="hamburger-line block w-6 h-0.5 bg-gray-700"></span>
@@ -184,11 +207,11 @@
                 </button>
             </div>
 
-            {{-- Mobile Menu - Tampil saat hamburger diklik --}}
+            {{-- Mobile Menu --}}
             <div id="mobile-menu" class="lg:hidden hidden border-t border-gray-200 bg-white py-4">
                 <div class="flex flex-col space-y-4">
                     {{-- Mobile Search --}}
-                    <form action="{{ url('/products') }}" method="get" class="px-4">
+                    <form action="{{ route('products.index') }}" method="get" class="px-4">
                         <label class="relative block">
                             <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
                                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -215,20 +238,48 @@
                     {{-- Mobile Auth Links --}}
                     <div class="border-t border-gray-200 pt-4 mt-2">
                         @auth
-                            <a href="{{ route('cart.index') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
-                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
-                                </svg>
-                                <span>Keranjang</span>
-                            </a>
-                            <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
-                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 12a5 5 0 100-10 5 5 0 000 10zm-7 9a7 7 0 0114 0H5z"/>
-                                </svg>
-                                <span>Profil Saya</span>
-                            </a>
+                            @if(auth()->user()->role === 'customer')
+                                <a href="{{ route('cart.index') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            d="M3 3h2l.4 2M7 13h10l3-7H6.4M7 13L6 6M7 13l-2 7h14M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+                                    </svg>
+                                    <span>Keranjang</span>
+                                </a>
+                            @endif
+
+                            @if(auth()->user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                    </svg>
+                                    <span>Dashboard Admin</span>
+                                </a>
+                                
+                                <a href="{{ route('admin.profile.edit') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 12a5 5 0 100-10 5 5 0 000 10zm-7 9a7 7 0 0114 0H5z"/>
+                                    </svg>
+                                    <span>Profil Admin</span>
+                                </a>
+                            @else
+                                <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 12a5 5 0 100-10 5 5 0 000 10zm-7 9a7 7 0 0114 0H5z"/>
+                                    </svg>
+                                    <span>Profil Saya</span>
+                                </a>
+                                
+                                <a href="{{ route('profile.orders') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                    <span>Riwayat Pesanan</span>
+                                </a>
+                            @endif
+                            
                             {{-- Logout --}}
                             <form method="POST" action="{{ route('logout') }}" class="w-full">
                                 @csrf
@@ -269,10 +320,7 @@
             // Toggle hamburger menu
             if (hamburgerButton && mobileMenu) {
                 hamburgerButton.addEventListener('click', function() {
-                    // Toggle hamburger animation
                     hamburgerButton.classList.toggle('hamburger-active');
-                    
-                    // Toggle mobile menu
                     mobileMenu.classList.toggle('hidden');
                 });
             }
@@ -286,7 +334,7 @@
                 });
             });
 
-            // User dropdown script (tetap sama)
+            // User dropdown script
             const userMenuButton = document.getElementById('user-menu-button');
             const userDropdown = document.getElementById('user-dropdown');
             const chevron = userMenuButton?.querySelector('svg:last-child');
@@ -315,29 +363,9 @@
                 });
             }
         });
-</script>
-
-    <!-- Script keranjang frontend -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Untuk user yang sudah login, gunakan data dari server
-        const isLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
-        const totalItems = {{ $totalItems ?? 0 }};
-        
-        if (isLoggedIn) {
-            document.querySelectorAll('[data-cart-badge]').forEach(el => {
-                el.textContent = totalItems;
-            });
-        } else {
-            document.querySelectorAll('[data-cart-badge]').forEach(el => {
-                el.textContent = '0';
-            });
-        }
-    });
     </script>
-    
 
-    {{-- SCRIPT BIAR KALAU BELUM LOGIN KLIK KERANJANG LANGSUNG KE LOGIN + KEMBALI KE KERANJANG SETELAH LOGIN --}}
+    {{-- Script untuk redirect login --}}
     <script>
         function goToLoginWithRedirect() {
             const redirectTo = '/cart';

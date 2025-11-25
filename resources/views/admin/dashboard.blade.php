@@ -229,52 +229,52 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                 @forelse($latestRentals as $rental)
-                    <tr class="hover:bg-gray-50/70 transition-colors">
-                        <td class="py-4 px-4">
-                            <span class="font-medium text-gray-900">#{{ $rental->rental_id }}</span>
-                        </td>
-                        <td class="py-4 px-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
-                                    {{ substr($rental->user->full_name ?? $rental->user->username ?? 'U', 0, 1) }}
-                                </div>
-                                <span class="font-medium text-gray-800">
-                                    {{ $rental->user->full_name ?? $rental->user->username ?? 'User #'.$rental->user_id }}
-                                </span>
+                <tr class="hover:bg-gray-50/70 transition-colors">
+                    <td class="py-4 px-4">
+                        <span class="font-medium text-gray-900">#{{ $rental->rental_id }}</span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
+                                {{ substr($rental->user->full_name ?? $rental->user->username ?? 'U', 0, 1) }}
                             </div>
-                        </td>
-                        <td class="py-4 px-4 text-gray-600">
-                            {{ $rental->rental_start_date
-                                ? Carbon::parse($rental->rental_start_date)->format('d M Y')
-                                : '-' }}
-                        </td>
-                        <td class="py-4 px-4 text-gray-600">
-                            {{ $rental->rental_end_date
-                                ? Carbon::parse($rental->rental_end_date)->format('d M Y')
-                                : '-' }}
-                        </td>
-                        <td class="py-4 px-4">
-                            <span class="font-bold text-gray-900">
-                                Rp {{ number_format($rental->total_price ?? 0, 0, ',', '.') }}
+                            <span class="font-medium text-gray-800">
+                                {{ $rental->user->full_name ?? $rental->user->username ?? 'User #'.$rental->user_id }}
                             </span>
-                        </td>
-                        <td class="py-4 px-4">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Terverifikasi
-                            </span>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="py-8 text-center">
-                            <div class="flex flex-col items-center justify-center text-gray-400">
-                                <span class="text-4xl mb-2">📭</span>
-                                <p class="text-sm font-medium">Belum ada data peminjaman</p>
-                                <p class="text-xs mt-1">Data peminjaman yang terverifikasi akan muncul di sini</p>
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
+                        </div>
+                    </td>
+                    <td class="py-4 px-4 text-gray-600">
+                        {{ $rental->rental_start_date ? Carbon::parse($rental->rental_start_date)->format('d M Y') : '-' }}
+                    </td>
+                    <td class="py-4 px-4 text-gray-600">
+                        {{ $rental->rental_end_date ? Carbon::parse($rental->rental_end_date)->format('d M Y') : '-' }}
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="font-bold text-gray-900">
+                            Rp {{ number_format($rental->total_price ?? 0, 0, ',', '.') }}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                            @if($rental->order_status === 'selesai') bg-green-100 text-green-800
+                            @elseif($rental->order_status === 'dikonfirmasi') bg-blue-100 text-blue-800
+                            @elseif($rental->order_status === 'sedang_berjalan') bg-purple-100 text-purple-800
+                            @else bg-yellow-100 text-yellow-800 @endif">
+                            {{ str_replace('_', ' ', $rental->order_status) }}
+                        </span>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="py-8 text-center">
+                        <div class="flex flex-col items-center justify-center text-gray-400">
+                            <span class="text-4xl mb-2">📭</span>
+                            <p class="text-sm font-medium">Belum ada data peminjaman terverifikasi</p>
+                            <p class="text-xs mt-1">Data peminjaman dengan pembayaran terverifikasi akan muncul di sini</p>
+                        </div>
+                    </td>
+                </tr>
+            @endforelse
                 </tbody>
             </table>
         </div>

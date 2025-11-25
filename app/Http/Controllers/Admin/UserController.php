@@ -8,28 +8,32 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderBy('created_at', 'desc')->paginate(20);
+        $query = User::query();
+
+        // Filter pencarian
+        if ($request->has('q') && $request->q) {
+            $search = $request->q;
+            $query->where(function($q) use ($search) {
+                $q->where('username', 'LIKE', "%{$search}%")
+                  ->orWhere('full_name', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Filter role
+        if ($request->has('role') && $request->role) {
+            $query->where('role', $request->role);
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(20);
 
         return view('admin.users.index', compact('users'));
     }
 
     public function show(User $user)
     {
-
         return view('admin.users.show', compact('user'));
-    }
-    public function update(Request $request, User $user)
-    {
-        $validated = $request->validate([
-            'role' => ['required', 'in:customer,admin,staff,owner'],
-        ]);
-
-        $user->update($validated);
-
-        return redirect()
-            ->route('admin.users.index')
-            ->with('success', 'Role pengguna berhasil diperbarui.');
     }
 }
