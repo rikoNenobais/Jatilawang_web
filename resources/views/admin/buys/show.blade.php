@@ -8,17 +8,6 @@
 @endphp
 
 @section('content')
-    @if(session('success'))
-        <div class="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
-            <div class="flex items-center gap-3">
-                <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="text-green-800 font-medium">{{ session('success') }}</p>
-            </div>
-        </div>
-    @endif
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             {{-- Informasi Pembelian --}}
@@ -84,12 +73,6 @@
                                 'dibatalkan' => 'bg-red-100 text-red-800 border-red-200'
                             ];
 
-                            $paymentColors = [
-                                'menunggu_pembayaran' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                                'terbayar' => 'bg-green-100 text-green-800 border-green-200',
-                                'gagal' => 'bg-red-100 text-red-800 border-red-200'
-                            ];
-
                             $statusLabels = [
                                 'menunggu_verifikasi' => 'Menunggu Verifikasi',
                                 'dikonfirmasi' => 'Dikonfirmasi',
@@ -109,11 +92,21 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Status Pembayaran</label>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $paymentColors[$buy->payment_status] ?? 'bg-gray-100 text-gray-800 border-gray-200' }}">
-                                {{ str_replace('_', ' ', $buy->payment_status) }}
-                            </span>
-                            @if($buy->paid_at)
-                            <p class="text-xs text-gray-500 mt-1">Pada {{ Carbon::parse($buy->paid_at)->format('d M Y H:i') }}</p>
+                            @if($buy->transaction)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                                    @if($buy->transaction->payment_status === 'terbayar') bg-green-100 text-green-800 border-green-200
+                                    @elseif($buy->transaction->payment_status === 'menunggu_verifikasi') bg-yellow-100 text-yellow-800 border-yellow-200
+                                    @elseif($buy->transaction->payment_status === 'menunggu_pembayaran') bg-blue-100 text-blue-800 border-blue-200
+                                    @else bg-red-100 text-red-800 border-red-200 @endif">
+                                    {{ str_replace('_', ' ', $buy->transaction->payment_status) }}
+                                </span>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    TRX-{{ $buy->transaction->transaction_id }}
+                                </p>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border-gray-200">
+                                    Belum ada transaksi
+                                </span>
                             @endif
                         </div>
 
@@ -150,7 +143,6 @@
                         <tbody class="divide-y divide-gray-200">
                             @foreach($buy->detailBuys as $detail)
                             @php
-                                // Hitung harga satuan dari total_price / quantity
                                 $hargaSatuan = $detail->quantity > 0 ? $detail->total_price / $detail->quantity : 0;
                             @endphp
                             <tr class="hover:bg-gray-50">
@@ -175,7 +167,6 @@
                             </tr>
                             @endforeach
                             
-                            {{-- Total Row --}}
                             <tr class="bg-gray-50 font-semibold">
                                 <td colspan="3" class="py-3 px-4 text-right">Total:</td>
                                 <td class="py-3 px-4 text-gray-900">
@@ -201,13 +192,17 @@
                     <div class="space-y-3">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
-                            <p class="text-sm text-gray-900 capitalize">{{ $buy->payment_method ?? '-' }}</p>
+                            @if($buy->transaction)
+                                <p class="text-sm text-gray-900 capitalize">{{ $buy->transaction->payment_method ?? '-' }}</p>
+                            @else
+                                <p class="text-sm text-gray-500">Belum ada transaksi</p>
+                            @endif
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Bukti Pembayaran</label>
-                            @if($buy->payment_proof)
-                            <a href="{{ asset('storage/' . $buy->payment_proof) }}" target="_blank"
+                            @if($buy->transaction && $buy->transaction->payment_proof)
+                            <a href="{{ asset('storage/' . $buy->transaction->payment_proof) }}" target="_blank"
                                class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -219,6 +214,18 @@
                             <p class="text-sm text-gray-500">Belum upload bukti</p>
                             @endif
                         </div>
+
+                        @if($buy->transaction)
+                        <div>
+                            <a href="{{ route('admin.transactions.show', $buy->transaction) }}" 
+                               class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Lihat Detail Transaksi
+                            </a>
+                        </div>
+                        @endif
                     </div>
 
                     <div class="space-y-3">
@@ -263,15 +270,6 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
-                        <select name="payment_status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="menunggu_pembayaran" {{ $buy->payment_status == 'menunggu_pembayaran' ? 'selected' : '' }}>Menunggu Pembayaran</option>
-                            <option value="terbayar" {{ $buy->payment_status == 'terbayar' ? 'selected' : '' }}>Terbayar</option>
-                            <option value="gagal" {{ $buy->payment_status == 'gagal' ? 'selected' : '' }}>Gagal</option>
-                        </select>
-                    </div>
-
-                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Pengiriman</label>
                         <textarea name="shipping_address" rows="3" 
                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -301,12 +299,12 @@
                         </svg>
                         <span>Dibuat: {{ $buy->created_at->diffForHumans() }}</span>
                     </div>
-                    @if($buy->paid_at)
+                    @if($buy->transaction && $buy->transaction->paid_at)
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Dibayar: {{ Carbon::parse($buy->paid_at)->diffForHumans() }}</span>
+                        <span>Dibayar: {{ Carbon::parse($buy->transaction->paid_at)->diffForHumans() }}</span>
                     </div>
                     @endif
                     @if($buy->shipped_at)

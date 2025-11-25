@@ -45,32 +45,16 @@ class BuyController extends Controller
     }
 
     public function update(Request $request, Buy $buy)
-    {
-        $validated = $request->validate([
-            'order_status' => ['required', 'in:menunggu_verifikasi,dikonfirmasi,diproses,dikirim,selesai,dibatalkan'],
-            'payment_status' => ['required', 'in:menunggu_pembayaran,terbayar,gagal'],
-            'shipping_address' => ['nullable', 'string'],
-        ]);
+{
+    $validated = $request->validate([
+        'order_status' => ['required', 'in:menunggu_verifikasi,dikonfirmasi,diproses,dikirim,selesai,dibatalkan'],
+        'shipping_address' => ['nullable', 'string'],
+    ]);
 
-        // Jika status diubah menjadi dikirim, set shipped_at
-        if ($request->order_status === 'dikirim' && !$buy->shipped_at) {
-            $validated['shipped_at'] = Carbon::now();
-        }
+    $buy->update($validated);
 
-        // Jika status diubah menjadi selesai
-        if ($request->order_status === 'selesai') {
-            $validated['shipped_at'] = $buy->shipped_at ?? Carbon::now();
-        }
-
-        // Jika pembayaran dikonfirmasi, set paid_at
-        if ($request->payment_status === 'terbayar' && !$buy->paid_at) {
-            $validated['paid_at'] = Carbon::now();
-        }
-
-        $buy->update($validated);
-
-        return redirect()
-            ->route('admin.buys.show', $buy)
-            ->with('success', 'Data pembelian berhasil diperbarui.');
-    }
+    return redirect()
+        ->route('admin.buys.show', $buy)
+        ->with('success', 'Data pembelian berhasil diperbarui.');
+}
 }

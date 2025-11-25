@@ -7,7 +7,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">Riwayat Pesanan</h1>
-            <p class="text-gray-600 mt-2">Lihat semua pesanan sewa dan beli Anda</p>
+            <p class="text-gray-600 mt-2">Lihat semua transaksi sewa dan beli Anda</p>
         </div>
 
         {{-- Info Box --}}
@@ -19,10 +19,9 @@
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-blue-800">Info Pesanan</h3>
+                    <h3 class="text-sm font-medium text-blue-800">Info Transaksi</h3>
                     <div class="mt-2 text-sm text-blue-700">
                         <p>• Pesanan akan diproses dalam 1x24 jam setelah pembayaran terverifikasi</p>
-                        <p>• Untuk pertanyaan atau bantuan, hubungi admin:</p>
                     </div>
                 </div>
             </div>
@@ -43,81 +42,91 @@
         </div>
         @endif
 
-        {{-- Rental Orders --}}
-        @if($rentals->count() > 0)
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">Pesanan Sewa</h2>
-            <div class="space-y-4">
-                @foreach($rentals as $rental)
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+        {{-- Transactions --}}
+        @if($transactions->count() > 0)
+        <div class="space-y-6">
+            @foreach($transactions as $transaction)
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                {{-- Transaction Header --}}
+                <div class="flex justify-between items-start mb-4 pb-4 border-b border-gray-200">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900">Transaksi #TRX-{{ $transaction->transaction_id }}</h2>
+                        <p class="text-sm text-gray-500 mt-1">
+                            {{ $transaction->created_at->format('d M Y H:i') }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                            @if($transaction->payment_status === 'terbayar') bg-green-100 text-green-800
+                            @elseif($transaction->payment_status === 'menunggu_verifikasi') bg-yellow-100 text-yellow-800
+                            @elseif($transaction->payment_status === 'menunggu_pembayaran') bg-blue-100 text-blue-800
+                            @else bg-red-100 text-red-800 @endif">
+                            {{ str_replace('_', ' ', $transaction->payment_status) }}
+                        </span>
+                        <p class="text-lg font-bold text-gray-900 mt-2">
+                            Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}
+                        </p>
+                        <p class="text-sm text-gray-600 mt-1">
+                            {{ strtoupper($transaction->payment_method) }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Rental Orders dalam transaksi ini --}}
+                @foreach($transaction->rentals as $rental)
+                <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:bg-gray-50 transition">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center gap-4 mb-2">
-                                <h3 class="font-medium text-gray-900">SEWA-{{ $rental->rental_id }}</h3>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    @if($rental->payment_status === 'terbayar') bg-green-100 text-green-800
-                                    @elseif($rental->payment_status === 'menunggu_pembayaran') bg-yellow-100 text-yellow-800
-                                    @else bg-red-100 text-red-800 @endif">
-                                    {{ ucfirst(str_replace('_', ' ', $rental->payment_status)) }}
-                                </span>
+                                <h3 class="font-medium text-gray-900">📅 Sewa - SEWA-{{ $rental->rental_id }}</h3>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     {{ ucfirst(str_replace('_', ' ', $rental->order_status)) }}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-600 mb-1">
-                                Periode: 
-                                {{ \Carbon\Carbon::parse($rental->rental_start_date)->format('d M Y') }} - 
-                                {{ \Carbon\Carbon::parse($rental->rental_end_date)->format('d M Y') }}
-                            </p>
-                            <p class="text-sm text-gray-600 mb-1">Total: Rp {{ number_format($rental->total_price, 0, ',', '.') }}</p>
-                            <p class="text-sm text-gray-600">Metode: {{ strtoupper($rental->payment_method) }} • {{ $rental->delivery_option === 'delivery' ? 'Antar' : 'Ambil di Tempat' }}</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                                <div>Periode:</div>
+                                <div>{{ \Carbon\Carbon::parse($rental->rental_start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($rental->rental_end_date)->format('d M Y') }}</div>
+                                <div>Pengiriman:</div>
+                                <div>{{ $rental->delivery_option === 'delivery' ? 'Antar (Rp 18.000)' : 'Ambil di Tempat' }}</div>
+                                <div>Subtotal:</div>
+                                <div class="font-medium">Rp {{ number_format($rental->total_price, 0, ',', '.') }}</div>
+                            </div>
                             
                             {{-- Status Info --}}
                             @if($rental->order_status === 'menunggu_verifikasi')
-                            <p class="text-xs text-yellow-600 mt-2">Menunggu verifikasi admin (1x24 jam)</p>
-                            @elseif($rental->order_status === 'diproses')
-                            <p class="text-xs text-blue-600 mt-2">Pesanan sedang diproses</p>
+                            <p class="text-xs text-yellow-600 mt-2">🕐 Menunggu verifikasi admin</p>
+                            @elseif($rental->order_status === 'dikonfirmasi')
+                            <p class="text-xs text-blue-600 mt-2">✅ Pesanan dikonfirmasi</p>
+                            @elseif($rental->order_status === 'sedang_berjalan')
+                            <p class="text-xs text-purple-600 mt-2">🔄 Sewa sedang berjalan</p>
                             @elseif($rental->order_status === 'selesai')
-                            <p class="text-xs text-green-600 mt-2">Pesanan telah selesai</p>
+                            <p class="text-xs text-green-600 mt-2">🎉 Sewa telah selesai</p>
                             @endif
                         </div>
                         <div class="text-right">
-                            <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($rental->created_at)->format('d M Y H:i') }}</p>
-                            
                             {{-- REVIEW BUTTON - Hanya untuk order selesai --}}
                             @if($rental->order_status === 'selesai')
                             <button onclick="openReviewModal()" 
-                                    class="inline-block mt-2 px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition">
-                                Review Produk
+                                    class="inline-block px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition mb-2">
+                                Beri Review
                             </button>
                             @endif
                             
-                            {{-- BAYAR BUTTON - Untuk yang belum bayar (non-cash) --}}
-                            {{-- Untuk Rental --}}
-                            @if($rental->payment_status === 'menunggu_pembayaran' && !$rental->payment_proof && $rental->payment_method !== 'cash')
-                            <a href="{{ route('payment.show') }}" 
-                            class="inline-block mt-2 px-3 py-1 bg-emerald-600 text-white text-xs rounded hover:bg-emerald-700 transition">
-                                Bayar Sekarang
-                            </a>
-                            @endif
-                            
                             {{-- WHATSAPP BUTTON - Untuk pesanan yang butuh bantuan --}}
-                            @if(in_array($rental->order_status, ['menunggu_verifikasi', 'diproses']))
+                            @if(in_array($rental->order_status, ['menunggu_verifikasi', 'dikonfirmasi', 'sedang_berjalan']))
                             <a href="https://wa.me/6288888888888?text={{ urlencode("Halo Admin Jatilawang Adventure,
 
 Saya butuh bantuan untuk pesanan saya:
 
-- ID Pesanan: SEWA-{$rental->rental_id}
-- Tanggal Pesan: " . \Carbon\Carbon::parse($rental->created_at)->format('d M Y H:i') . "
-- Username: " . Auth::user()->name . "
+- ID Transaksi: TRX-{$transaction->transaction_id}
+- ID Sewa: SEWA-{$rental->rental_id}
+- Status: " . ucfirst(str_replace('_', ' ', $rental->order_status)) . "
 
-Status saat ini: " . ucfirst(str_replace('_', ' ', $rental->order_status)) . "
-
-Mohon info update terbaru mengenai pesanan saya.
+Mohon info update terbaru.
 
 Terima kasih") }}" 
                                target="_blank"
-                               class="inline-block mt-2 px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
+                               class="inline-block px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
                                 📞 Tanya Admin
                             </a>
                             @endif
@@ -125,84 +134,68 @@ Terima kasih") }}"
                     </div>
                 </div>
                 @endforeach
-            </div>
-        </div>
-        @endif
 
-        {{-- Purchase Orders --}}
-        @if($buys->count() > 0)
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">Pesanan Beli</h2>
-            <div class="space-y-4">
-                @foreach($buys as $buy)
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+                {{-- Buy Orders dalam transaksi ini --}}
+                @foreach($transaction->buys as $buy)
+                <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:bg-gray-50 transition">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center gap-4 mb-2">
-                                <h3 class="font-medium text-gray-900">BELI-{{ $buy->buy_id }}</h3>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    @if($buy->payment_status === 'terbayar') bg-green-100 text-green-800
-                                    @elseif($buy->payment_status === 'menunggu_pembayaran') bg-yellow-100 text-yellow-800
-                                    @else bg-red-100 text-red-800 @endif">
-                                    {{ ucfirst(str_replace('_', ' ', $buy->payment_status)) }}
-                                </span>
+                                <h3 class="font-medium text-gray-900">🛒 Beli - BELI-{{ $buy->buy_id }}</h3>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     {{ ucfirst(str_replace('_', ' ', $buy->order_status)) }}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-600 mb-1">Total: Rp {{ number_format($buy->total_price, 0, ',', '.') }}</p>
-                            <p class="text-sm text-gray-600">Metode: {{ strtoupper($buy->payment_method) }} • {{ $buy->delivery_option === 'delivery' ? 'Antar' : 'Ambil di Tempat' }}</p>
+                            <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                                <div>Pengiriman:</div>
+                                <div>{{ $buy->delivery_option === 'delivery' ? 'Antar (Rp 18.000)' : 'Ambil di Tempat' }}</div>
+                                <div>Subtotal:</div>
+                                <div class="font-medium">Rp {{ number_format($buy->total_price, 0, ',', '.') }}</div>
+                            </div>
                             @if($buy->shipping_address)
-                            <p class="text-sm text-gray-600 mt-1">Alamat: {{ Str::limit($buy->shipping_address, 50) }}</p>
+                            <div class="text-sm text-gray-600 mt-2">
+                                <div class="font-medium">Alamat:</div>
+                                <div class="text-xs">{{ $buy->shipping_address }}</div>
+                            </div>
                             @endif
                             
                             {{-- Status Info --}}
                             @if($buy->order_status === 'menunggu_verifikasi')
-                            <p class="text-xs text-yellow-600 mt-2">Menunggu verifikasi admin (1x24 jam)</p>
+                            <p class="text-xs text-yellow-600 mt-2">🕐 Menunggu verifikasi admin</p>
+                            @elseif($buy->order_status === 'dikonfirmasi')
+                            <p class="text-xs text-blue-600 mt-2">✅ Pesanan dikonfirmasi</p>
                             @elseif($buy->order_status === 'diproses')
-                            <p class="text-xs text-blue-600 mt-2">Pesanan sedang diproses</p>
+                            <p class="text-xs text-purple-600 mt-2">🔄 Pesanan sedang diproses</p>
                             @elseif($buy->order_status === 'dikirim')
-                            <p class="text-xs text-orange-600 mt-2">Pesanan sedang dikirim</p>
+                            <p class="text-xs text-orange-600 mt-2">🚚 Pesanan sedang dikirim</p>
                             @elseif($buy->order_status === 'selesai')
-                            <p class="text-xs text-green-600 mt-2">Pesanan telah selesai dan diterima</p>
+                            <p class="text-xs text-green-600 mt-2">🎉 Pesanan telah selesai</p>
                             @endif
                         </div>
                         <div class="text-right">
-                            <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($buy->created_at)->format('d M Y H:i') }}</p>
-                            
                             {{-- REVIEW BUTTON - Hanya untuk order selesai --}}
                             @if($buy->order_status === 'selesai')
                             <button onclick="openReviewModal()" 
-                                    class="inline-block mt-2 px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition">
-                                ✨ Review Produk
+                                    class="inline-block px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition mb-2">
+                                Beri Review
                             </button>
                             @endif
                             
-                            {{-- BAYAR BUTTON - Untuk yang belum bayar (non-cash) --}}
-                            @if($buy->payment_status === 'menunggu_pembayaran' && !$buy->payment_proof && $buy->payment_method !== 'cash')
-                            <a href="{{ route('payment.show') }}" 
-                            class="inline-block mt-2 px-3 py-1 bg-emerald-600 text-white text-xs rounded hover:bg-emerald-700 transition">
-                                Bayar Sekarang
-                            </a>
-                            @endif
-                            
                             {{-- WHATSAPP BUTTON - Untuk pesanan yang butuh bantuan --}}
-                            @if(in_array($buy->order_status, ['menunggu_verifikasi', 'diproses', 'dikirim']))
-                            <a href="https://wa.me/628888888888888?text={{ urlencode("Halo Admin Jatilawang Adventure,
+                            @if(in_array($buy->order_status, ['menunggu_verifikasi', 'dikonfirmasi', 'diproses', 'dikirim']))
+                            <a href="https://wa.me/6288888888888?text={{ urlencode("Halo Admin Jatilawang Adventure,
 
 Saya butuh bantuan untuk pesanan saya:
 
-- ID Pesanan: BELI-{$buy->buy_id}
-- Tanggal Pesan: " . \Carbon\Carbon::parse($buy->created_at)->format('d M Y H:i') . "
-- Username: " . Auth::user()->name . "
+- ID Transaksi: TRX-{$transaction->transaction_id}
+- ID Beli: BELI-{$buy->buy_id}
+- Status: " . ucfirst(str_replace('_', ' ', $buy->order_status)) . "
 
-Status saat ini: " . ucfirst(str_replace('_', ' ', $buy->order_status)) . "
-
-Mohon info update terbaru mengenai pesanan saya.
+Mohon info update terbaru.
 
 Terima kasih") }}" 
                                target="_blank"
-                               class="inline-block mt-2 px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
+                               class="inline-block px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
                                 📞 Tanya Admin
                             </a>
                             @endif
@@ -210,14 +203,37 @@ Terima kasih") }}"
                     </div>
                 </div>
                 @endforeach
+
+                {{-- Payment Actions --}}
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-600">
+                            @if($transaction->payment_status === 'menunggu_pembayaran')
+                            <p class="text-yellow-600">💳 Silakan selesaikan pembayaran</p>
+                            @elseif($transaction->payment_status === 'menunggu_verifikasi')
+                            <p class="text-blue-600">⏳ Menunggu verifikasi pembayaran</p>
+                            @elseif($transaction->payment_status === 'terbayar')
+                            <p class="text-green-600">✅ Pembayaran terverifikasi</p>
+                            @endif
+                        </div>
+                        
+                        @if($transaction->payment_status === 'menunggu_pembayaran')
+                        <a href="{{ route('payment.show', $transaction->transaction_id) }}" 
+                           class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                            Bayar Sekarang
+                        </a>
+                        @endif
+                    </div>
+                </div>
             </div>
+            @endforeach
         </div>
         @endif
 
-        @if($rentals->count() === 0 && $buys->count() === 0)
+        @if($transactions->count() === 0)
         <div class="text-center py-12">
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada pesanan</h3>
-            <p class="text-gray-600 mb-6">Mulai berbelanja untuk melihat pesanan di sini.</p>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada transaksi</h3>
+            <p class="text-gray-600 mb-6">Mulai berbelanja untuk melihat transaksi di sini.</p>
             <a href="{{ route('products.index') }}" 
                class="inline-flex items-center px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition">
                 Mulai Belanja

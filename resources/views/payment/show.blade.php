@@ -3,28 +3,51 @@
 @section('title', 'Pembayaran - Jatilawang Adventure')
 
 @section('content')
-<section class="min-h-screen bg-gray-50 py-8">
+{{-- BACKGROUND FOTO UNTUK SELURUH HALAMAN --}}
+<div class="fixed inset-0 -z-10">
+    <img src="{{ asset('storage/hero/peaks.jpg') }}" 
+        alt="Pegunungan Jatilawang Adventure" 
+        class="w-full h-full object-cover">
+    {{-- Overlay Gradient --}}
+    <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/80 via-emerald-800/70 to-teal-700/80"></div>
+</div>
+
+{{-- Efek Blur --}}
+<div class="pointer-events-none absolute -top-40 -left-40 h-[700px] w-[700px] rounded-full bg-emerald-900/20 blur-3xl -z-10"></div>
+
+<section class="min-h-screen py-8">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Pembayaran</h1>
-            <p class="text-gray-600 mt-2">Selesaikan pembayaran untuk pesanan Anda</p>
+            <h1 class="text-3xl font-bold text-white">Pembayaran</h1>
+            <p class="text-white mt-2">Selesaikan pembayaran untuk semua pesanan Anda</p>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             {{-- Order Info --}}
             <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Detail Pesanan</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Detail Transaksi</h3>
                 
-                {{-- Tampilkan semua rental yang belum bayar --}}
-                @foreach($unpaidRentals as $rental)
-                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                {{-- Transaction Summary --}}
+                <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-semibold text-emerald-800">Kode Transaksi</span>
+                        <span class="font-mono text-emerald-600">TRX-{{ $transaction->transaction_id }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-semibold text-emerald-800">Total Pembayaran</span>
+                        <span class="text-2xl font-bold text-emerald-600">
+                            Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Rental Orders --}}
+                @foreach($transaction->rentals as $rental)
+                <div class="bg-gray-50 rounded-lg p-4 mb-3">
                     <h4 class="font-medium text-gray-700 mb-2">📅 Sewa - SEWA-{{ $rental->rental_id }}</h4>
                     <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div class="text-gray-600">Total:</div>
+                        <div class="text-gray-600">Subtotal:</div>
                         <div class="text-gray-900 font-medium">Rp {{ number_format($rental->total_price, 0, ',', '.') }}</div>
-                        
-                        <div class="text-gray-600">Metode:</div>
-                        <div class="text-gray-900 font-medium">{{ strtoupper($rental->payment_method) }}</div>
                         
                         <div class="text-gray-600">Pengiriman:</div>
                         <div class="text-gray-900 font-medium">
@@ -40,16 +63,13 @@
                 </div>
                 @endforeach
 
-                {{-- Tampilkan semua buy yang belum bayar --}}
-                @foreach($unpaidBuys as $buy)
-                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                {{-- Buy Orders --}}
+                @foreach($transaction->buys as $buy)
+                <div class="bg-gray-50 rounded-lg p-4 mb-3">
                     <h4 class="font-medium text-gray-700 mb-2">🛒 Beli - BELI-{{ $buy->buy_id }}</h4>
                     <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div class="text-gray-600">Total:</div>
+                        <div class="text-gray-600">Subtotal:</div>
                         <div class="text-gray-900 font-medium">Rp {{ number_format($buy->total_price, 0, ',', '.') }}</div>
-                        
-                        <div class="text-gray-600">Metode:</div>
-                        <div class="text-gray-900 font-medium">{{ strtoupper($buy->payment_method) }}</div>
                         
                         <div class="text-gray-600">Pengiriman:</div>
                         <div class="text-gray-900 font-medium">
@@ -64,13 +84,7 @@
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Instruksi Pembayaran</h3>
                 
-                @php
-                    // Ambil metode pembayaran dari order pertama
-                    $paymentMethod = $unpaidRentals->first() ? $unpaidRentals->first()->payment_method : 
-                                  ($unpaidBuys->first() ? $unpaidBuys->first()->payment_method : 'transfer');
-                @endphp
-
-                @if($paymentMethod === 'qris')
+                @if($transaction->payment_method === 'qris')
                 <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
                     <h4 class="font-semibold text-emerald-800 mb-2">Pembayaran QRIS</h4>
                     <div class="text-center mb-4">
@@ -89,7 +103,7 @@
                         <li>5. Simpan bukti pembayaran</li>
                     </ol>
                 </div>
-                @elseif($paymentMethod === 'transfer')
+                @elseif($transaction->payment_method === 'transfer')
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h4 class="font-semibold text-blue-800 mb-2">Transfer Bank</h4>
                     <div class="space-y-3">
@@ -108,7 +122,7 @@
                         <div class="flex justify-between">
                             <span class="text-gray-600">Total Transfer:</span>
                             <span class="font-medium">
-                                Rp {{ number_format($unpaidRentals->sum('total_price') + $unpaidBuys->sum('total_price'), 0, ',', '.') }}
+                                Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}
                             </span>
                         </div>
                     </div>
@@ -120,65 +134,22 @@
             <div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Upload Bukti Pembayaran</h3>
                 
-                @if($unpaidRentals->count() + $unpaidBuys->count() > 1)
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                    <p class="text-sm text-yellow-700">
-                        <strong>Perhatian:</strong> Anda memiliki {{ $unpaidRentals->count() + $unpaidBuys->count() }} pesanan yang belum dibayar. 
-                        Silakan upload bukti pembayaran untuk masing-masing pesanan.
-                    </p>
-                </div>
-                @endif
+                <form action="{{ route('payment.upload-proof', $transaction->transaction_id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Bukti Pembayaran</label>
+                        <input type="file" name="payment_proof" 
+                               accept=".jpg,.jpeg,.png,.pdf"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                               required>
+                        <p class="text-xs text-gray-500 mt-2">Format: JPG, PNG, PDF (Maks. 2MB)</p>
+                    </div>
 
-                {{-- Form untuk setiap order --}}
-                @foreach($unpaidRentals as $rental)
-                <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                    <h4 class="font-medium text-gray-700 mb-3">Upload untuk SEWA-{{ $rental->rental_id }}</h4>
-                    <form action="{{ route('payment.upload-proof') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="order_type" value="rental">
-                        <input type="hidden" name="order_id" value="{{ $rental->rental_id }}">
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Bukti Pembayaran</label>
-                            <input type="file" name="payment_proof" 
-                                   accept=".jpg,.jpeg,.png,.pdf"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
-                                   required>
-                            <p class="text-xs text-gray-500 mt-2">Format: JPG, PNG, PDF (Maks. 2MB)</p>
-                        </div>
-
-                        <button type="submit" 
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-6 rounded-lg font-semibold transition">
-                            Konfirmasi Pembayaran untuk SEWA-{{ $rental->rental_id }}
-                        </button>
-                    </form>
-                </div>
-                @endforeach
-
-                @foreach($unpaidBuys as $buy)
-                <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                    <h4 class="font-medium text-gray-700 mb-3">Upload untuk BELI-{{ $buy->buy_id }}</h4>
-                    <form action="{{ route('payment.upload-proof') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="order_type" value="buy">
-                        <input type="hidden" name="order_id" value="{{ $buy->buy_id }}">
-
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Bukti Pembayaran</label>
-                            <input type="file" name="payment_proof" 
-                                   accept=".jpg,.jpeg,.png,.pdf"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
-                                   required>
-                            <p class="text-xs text-gray-500 mt-2">Format: JPG, PNG, PDF (Maks. 2MB)</p>
-                        </div>
-
-                        <button type="submit" 
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-6 rounded-lg font-semibold transition">
-                            Konfirmasi Pembayaran untuk BELI-{{ $buy->buy_id }}
-                        </button>
-                    </form>
-                </div>
-                @endforeach
+                    <button type="submit" 
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-6 rounded-lg font-semibold transition">
+                        Konfirmasi Pembayaran untuk Semua Pesanan
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -191,9 +162,9 @@
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-yellow-800">Mohon Menunggu Verifikasi</h3>
+                    <h3 class="text-sm font-medium text-yellow-800">Pembayaran Menyatu</h3>
                     <div class="mt-2 text-sm text-yellow-700">
-                        <p>Setelah upload bukti pembayaran, admin akan memverifikasi pembayaran Anda. Status pesanan akan diperbarui dalam 1x24 jam.</p>
+                        <p>Anda melakukan <strong>1 kali pembayaran</strong> untuk semua pesanan (sewa dan beli). Status akan diperbarui dalam 1x24 jam setelah verifikasi admin.</p>
                     </div>
                 </div>
             </div>
