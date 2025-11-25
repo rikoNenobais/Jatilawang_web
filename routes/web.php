@@ -101,6 +101,8 @@ Route::middleware(['auth', 'admin'])
         Route::resource('rentals', RentalController::class)->only(['index', 'show', 'update']);
         Route::post('/rentals/{rental}/denda', [RentalController::class, 'updateDenda'])->name('rentals.update-denda');
 
+        Route::resource('buys', \App\Http\Controllers\Admin\BuyController::class);
+
         // User (ubah role) 
         Route::resource('users', UserController::class)->only(['index', 'show']);
 

@@ -5,6 +5,8 @@
 
 @php
     use Illuminate\Support\Carbon;
+    $currentMonth = now()->month;
+    $currentYear = now()->year;
 @endphp
 
 @section('content')
@@ -87,9 +89,9 @@
         </div>
     </div>
 
-    {{-- Pendapatan --}}
+    {{-- Pendapatan Bulan Ini --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {{-- Pendapatan Rental --}}
+        {{-- Pendapatan Rental Bulan Ini --}}
         <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
             <div class="relative z-10">
@@ -97,16 +99,19 @@
                     <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                         <span class="text-lg">💰</span>
                     </div>
-                    <p class="text-sm font-semibold text-blue-100 uppercase tracking-wide">Pendapatan Sewa</p>
+                    <div>
+                        <p class="text-sm font-semibold text-blue-100 uppercase tracking-wide">Pendapatan Sewa</p>
+                        <p class="text-xs text-blue-200/80 mt-1">Bulan Ini</p>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold mb-2">Rp {{ number_format($totalRevenueRentals ?? 0, 0, ',', '.') }}</p>
+                <p class="text-2xl font-bold mb-2">Rp {{ number_format($monthlyRevenueRentals ?? 0, 0, ',', '.') }}</p>
                 <p class="text-xs text-blue-100/80">
-                    Dari transaksi yang sudah terverifikasi
+                    Dari transaksi sewa bulan {{ now()->translatedFormat('F Y') }}
                 </p>
             </div>
         </div>
 
-        {{-- Pendapatan Beli --}}
+        {{-- Pendapatan Beli Bulan Ini --}}
         <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
             <div class="relative z-10">
@@ -114,16 +119,19 @@
                     <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                         <span class="text-lg">🛒</span>
                     </div>
-                    <p class="text-sm font-semibold text-green-100 uppercase tracking-wide">Pendapatan Beli</p>
+                    <div>
+                        <p class="text-sm font-semibold text-green-100 uppercase tracking-wide">Pendapatan Beli</p>
+                        <p class="text-xs text-green-200/80 mt-1">Bulan Ini</p>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold mb-2">Rp {{ number_format($totalRevenueBuy ?? 0, 0, ',', '.') }}</p>
+                <p class="text-2xl font-bold mb-2">Rp {{ number_format($monthlyRevenueBuy ?? 0, 0, ',', '.') }}</p>
                 <p class="text-xs text-green-100/80">
-                    Dari transaksi yang sudah terverifikasi
+                    Dari transaksi beli bulan {{ now()->translatedFormat('F Y') }}
                 </p>
             </div>
         </div>
 
-        {{-- Total Pendapatan --}}
+        {{-- Total Pendapatan Bulan Ini --}}
         <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
             <div class="relative z-10">
@@ -131,11 +139,14 @@
                     <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                         <span class="text-lg">📊</span>
                     </div>
-                    <p class="text-sm font-semibold text-purple-100 uppercase tracking-wide">Total Pendapatan</p>
+                    <div>
+                        <p class="text-sm font-semibold text-purple-100 uppercase tracking-wide">Total Pendapatan</p>
+                        <p class="text-xs text-purple-200/80 mt-1">Bulan Ini</p>
+                    </div>
                 </div>
-                <p class="text-3xl font-bold mb-2">Rp {{ number_format($totalProfit ?? 0, 0, ',', '.') }}</p>
+                <p class="text-3xl font-bold mb-2">Rp {{ number_format($monthlyTotalProfit ?? 0, 0, ',', '.') }}</p>
                 <p class="text-xs text-purple-100/80">
-                    Total sewa + beli yang terverifikasi
+                    Total sewa + beli bulan {{ now()->translatedFormat('F Y') }}
                 </p>
             </div>
         </div>
