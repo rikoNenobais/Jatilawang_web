@@ -130,18 +130,13 @@
                     {{-- Shipping Address --}}
                     <div id="shippingAddressSection" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 {{ old('delivery_option') == 'delivery' ? '' : 'hidden' }}">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Alamat Pengiriman</h3>
-<<<<<<< HEAD
-                        <textarea name="shipping_address" rows="4" 
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 @error('shipping_address') border-red-500 @enderror"
-                                  placeholder="Masukkan alamat lengkap pengiriman di area Jogja...">{{ old('shipping_address', auth()->user()->address) }}</textarea>
-                        @error('shipping_address')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-=======
                         <div class="space-y-3">
                             <textarea id="shippingAddressField" name="shipping_address" rows="4" 
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 @error('shipping_address') border-red-500 @enderror"
                                       placeholder="Masukkan alamat lengkap pengiriman di area Jogja...">{{ old('shipping_address', auth()->user()->address) }}</textarea>
+                            @error('shipping_address')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <button type="button" id="detectLocationButton"
                                         class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition">
@@ -155,7 +150,6 @@
                                 </p>
                             </div>
                         </div>
->>>>>>> e10862baea4c44333f5654d3511f7805ffcd5107
                     </div>
 
                     {{-- Payment Method --}}
@@ -292,29 +286,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const deliveryFeeText = document.getElementById('deliveryFeeText');
     const totalAmountText = document.getElementById('totalAmountText');
     const finalTotal = document.getElementById('finalTotal');
-<<<<<<< HEAD
-    
-    const baseTotal = {{ $totalAmount }};
-    const deliveryFee = 18000;
-
-    // Elements untuk rental dates
-    const rentalStartDate = document.getElementById('rental_start_date');
-    const rentalDays = document.getElementById('rental_days');
-    const endDateDisplay = document.getElementById('end_date_display');
-
-    function updateEndDate() {
-        if (rentalStartDate && rentalDays) {
-            const startDate = new Date(rentalStartDate.value);
-            const days = parseInt(rentalDays.value);
-            const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + days);
-            
-            // Format tanggal ke Indonesia
-            const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            endDateDisplay.textContent = endDate.toLocaleDateString('id-ID', options);
-        }
-    }
-=======
     const detectLocationButton = document.getElementById('detectLocationButton');
     const locationStatus = document.getElementById('locationStatus');
     const shippingLatInput = document.getElementById('shipping_lat');
@@ -322,7 +293,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const baseTotal = Number('{{ $totalAmount }}');
     const deliveryFee = 18000; // Rp 18.000 untuk semua area Jogja
->>>>>>> e10862baea4c44333f5654d3511f7805ffcd5107
+
+    // Elements untuk rental dates
+    const rentalStartDate = document.getElementById('rental_start_date');
+    const rentalDays = document.getElementById('rental_days');
+    const endDateDisplay = document.getElementById('end_date_display');
+
+    function updateEndDate() {
+        if (rentalStartDate && rentalDays && endDateDisplay) {
+            const startDate = new Date(rentalStartDate.value);
+            const days = parseInt(rentalDays.value, 10);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + (isNaN(days) ? 0 : days));
+            
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            endDateDisplay.textContent = endDate.toLocaleDateString('id-ID', options);
+        }
+    }
 
     function updateTotals() {
         const selectedDelivery = document.querySelector('input[name="delivery_option"]:checked');

@@ -18,7 +18,7 @@
     </div>
 
     {{-- Gambar --}}
-    <a href="{{ route('products.show', $item->item_id) }}" class="block">
+    <a href="{{ route('products.show', $item->item_name) }}" class="block">
         <div class="relative w-full aspect-4/3 grid place-items-center bg-white overflow-hidden">
             <img src="{{ $item->url_image ?? asset('storage/foto-produk/default.png') }}"
                  alt="{{ $item->item_name ?? 'Produk' }}"

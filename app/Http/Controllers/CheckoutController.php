@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
 {
@@ -75,6 +76,38 @@ class CheckoutController extends Controller
                 $purchaseItems = $cartItems->where('type', 'buy');
                 $hasRental = $rentalItems->count() > 0;
                 $hasPurchase = $purchaseItems->count() > 0;
+
+                foreach ($rentalItems as $cartItem) {
+                    $item = $cartItem->item;
+
+                    if (! $item || ! $item->is_rentable) {
+                        throw ValidationException::withMessages([
+                            'cart' => 'Ada produk sewa yang tidak tersedia lagi. Segarkan halaman dan coba ulangi.',
+                        ]);
+                    }
+
+                    if ($item->rental_stock < $cartItem->quantity) {
+                        throw ValidationException::withMessages([
+                            'cart' => "Stok sewa {$item->item_name} tersisa {$item->rental_stock}.",
+                        ]);
+                    }
+                }
+
+                foreach ($purchaseItems as $cartItem) {
+                    $item = $cartItem->item;
+
+                    if (! $item || ! $item->is_sellable) {
+                        throw ValidationException::withMessages([
+                            'cart' => 'Ada produk beli yang tidak tersedia lagi. Segarkan halaman dan coba ulangi.',
+                        ]);
+                    }
+
+                    if ($item->sale_stock < $cartItem->quantity) {
+                        throw ValidationException::withMessages([
+                            'cart' => "Stok beli {$item->item_name} tersisa {$item->sale_stock}.",
+                        ]);
+                    }
+                }
 
                 // Validate request
                 $validationRules = [
@@ -170,7 +203,12 @@ class CheckoutController extends Controller
                             'penalty' => 0,
                         ]);
 
-                        // Update rental stock
+                        if ($cartItem->item->rental_stock < $cartItem->quantity) {
+                            throw ValidationException::withMessages([
+                                'cart' => "Stok sewa {$cartItem->item->item_name} sudah habis.",
+                            ]);
+                        }
+
                         $cartItem->item->decrement('rental_stock', $cartItem->quantity);
                     }
 
@@ -202,6 +240,12 @@ class CheckoutController extends Controller
                             'quantity' => $cartItem->quantity,
                             'total_price' => $cartItem->total_price,
                         ]);
+
+                        if ($cartItem->item->sale_stock < $cartItem->quantity) {
+                            throw ValidationException::withMessages([
+                                'cart' => "Stok beli {$cartItem->item->item_name} sudah habis.",
+                            ]);
+                        }
 
                         $cartItem->item->decrement('sale_stock', $cartItem->quantity);
                     }

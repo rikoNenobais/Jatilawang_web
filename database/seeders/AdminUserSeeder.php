@@ -10,15 +10,10 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email        = env('ADMIN_EMAIL', 'admin@example.com');
-        $username     = env('ADMIN_USERNAME', 'admin');
-        $fullName     = env('ADMIN_FULL_NAME', 'Admin Jatilawang');
-        $plainPassword = env('ADMIN_PASSWORD');
-        
-        if (empty($plainPassword)) {
-            $this->command?->error('ADMIN_PASSWORD belum di-set di file .env');
-            return;
-        }
+        $email         = env('ADMIN_EMAIL', 'admin@jatilawang.test');
+        $username      = env('ADMIN_USERNAME', 'admin');
+        $fullName      = env('ADMIN_FULL_NAME', 'Admin Jatilawang');
+        $plainPassword = env('ADMIN_PASSWORD', 'admin123');
 
         // buat / update user admin berdasarkan email
         User::updateOrCreate(
@@ -33,6 +28,7 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
+        $this->command?->warn('Pastikan ubah ADMIN_PASSWORD di produksi.');
         $this->command?->info("Admin user untuk {$email} sudah dibuat / diperbarui.");
     }
 }

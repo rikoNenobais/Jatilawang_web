@@ -1,4 +1,5 @@
 @extends('layouts.public')
+@php use Illuminate\Support\Str; @endphp
 
 @section('title', 'Tentang Kami - Jatilawang Adventure')
 
@@ -145,6 +146,88 @@
                                     Cara Sewa
                                 </a>
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Developer Section Template --}}
+                    <div class="mt-16">
+                        <div class="text-center mb-10">
+                            <p class="text-sm uppercase tracking-[0.3em] text-emerald-500">Tim Pengembang</p>
+                            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mt-2">Kenalan dengan Kami</h2>
+                            <p class="text-gray-600 mt-4 max-w-2xl mx-auto">
+                                Halo kami adalah developer dari Web Jatilawang Adventure. Semua foto diambil langsung dari postingan Instagram masing-masing anggota sesuai permintaan Anda.
+                            </p>
+                        </div>
+
+                        @php
+                            $developers = [
+                                [
+                                    'name' => 'Brifly',
+                                    'role' => 'Backend Engineer & QA',
+                                    'bio'  => 'Fokus di API, database dan Menguji fitur baru bagi pengguna.',
+                                    'photo' => asset('storage/dev/dev1.jpg'),
+                                    'instagram' => 'https://www.instagram.com/brifly._/',
+                                    'instagram_label' => '@brifly._',
+                                    'github' => 'https://github.com/Bilabong29',
+                                    'github_label' => 'github.com/Bilabong29',
+                                ],
+                                [
+                                    'name' => 'Riko',
+                                    'role' => 'Backend Engineer',
+                                    'bio'  => 'Fokus di database, controller dan mengelola agar project berjalan lancar.',
+                                    'photo' => asset('storage/dev/dev2.jpg'),
+                                    'instagram' => 'https://www.instagram.com/rikonbs_/',
+                                    'instagram_label' => '@rikonbs_',
+                                    'github' => 'https://github.com/rikoNenobais',
+                                    'github_label' => 'github.com/rikoNenobais',
+                                ],
+                                [
+                                    'name' => 'Jordy',
+                                    'role' => 'Frontend Engineer',
+                                    'bio'  => 'Menjaga tampilan dan interaksi UI agar tetap konsisten di berbagai perangkat.',
+                                    'photo' => asset('storage/dev/dev3.jpg'),
+                                    'instagram' => 'https://www.instagram.com/jordygf__/',
+                                    'instagram_label' => '@jordygf__',
+                                    'github' => 'https://github.com/ngabjorrr',
+                                    'github_label' => 'github.com/ngabjorrr',
+                                ],
+                            ];
+                        @endphp
+
+                        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                            @foreach($developers as $dev)
+                                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col">
+                                    <div class="flex flex-col items-center text-center">
+                                        @if(!empty($dev['photo']))
+                                            <img src="{{ $dev['photo'] }}" alt="{{ $dev['name'] }}"
+                                                 loading="lazy" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg">
+                                        @else
+                                            <div class="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center text-emerald-600 font-semibold text-lg uppercase">
+                                                {{ Str::of($dev['name'])->substr(0, 2) }}
+                                            </div>
+                                        @endif
+                                        <h3 class="mt-4 text-xl font-bold text-gray-900">{{ $dev['name'] }}</h3>
+                                        <p class="text-emerald-600 font-medium">{{ $dev['role'] }}</p>
+                                    </div>
+                                    <p class="text-gray-600 text-sm leading-relaxed mt-4 flex-1">
+                                        {{ $dev['bio'] }}
+                                    </p>
+                                    <div class="mt-6 flex flex-wrap items-center justify-center gap-3 text-gray-500 text-sm">
+                                        <a href="{{ $dev['instagram'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-100 hover:bg-emerald-50 hover:text-emerald-700 transition" aria-label="Instagram">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7zm0 2h10c1.654 0 3 1.346 3 3v10c0 1.654-1.346 3-3 3H7c-1.654 0-3-1.346-3-3V7c0-1.654 1.346-3 3-3zm9 2a1 1 0 100 2 1 1 0 000-2zM12 7c-2.757 0-5 2.243-5 5s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 2c1.654 0 3 1.346 3 3s-1.346 3-3 3-3-1.346-3-3 1.346-3 3-3z"/>
+                                            </svg>
+                                            <span>{{ $dev['instagram_label'] }}</span>
+                                        </a>
+                                        <a href="{{ $dev['github'] }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gray-200 hover:bg-gray-50 hover:text-gray-800 transition" aria-label="GitHub">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 .5C5.648.5.5 5.797.5 12.348c0 5.238 3.438 9.677 8.207 11.25.6.106.82-.27.82-.6v-2.03c-3.338.758-4.033-1.472-4.033-1.472-.546-1.44-1.332-1.824-1.332-1.824-1.09-.79.084-.774.084-.774 1.205.086 1.84 1.278 1.84 1.278 1.07 1.89 2.808 1.344 3.493 1.028.108-.8.418-1.344.762-1.653-2.666-.315-5.466-1.372-5.466-6.102 0-1.348.468-2.45 1.235-3.312-.124-.31-.536-1.562.118-3.258 0 0 1.008-.333 3.302 1.265a11.39 11.39 0 013.004-.417c1.02.004 2.046.143 3.004.417 2.292-1.598 3.3-1.265 3.3-1.265.655 1.696.243 2.948.12 3.258.77.862 1.233 1.964 1.233 3.312 0 4.74-2.807 5.782-5.48 6.09.43.382.824 1.148.824 2.318v3.433c0 .334.218.712.825.59 4.767-1.575 8.203-6.013 8.203-11.25C23.5 5.797 18.352.5 12 .5z"/>
+                                            </svg>
+                                            <span>{{ $dev['github_label'] }}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>

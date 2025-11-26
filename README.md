@@ -1,59 +1,61 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Jatilawang Adventure
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Platform rental & penjualan perlengkapan outdoor yang dibangun di atas Laravel 11 + Blade + Tailwind. Proyek ini sudah mencakup checkout gabungan (sewa & beli), verifikasi stok real-time, pengiriman dengan geolokasi, Socialite Google login, serta dashboard admin untuk memantau transaksi.
 
-## About Laravel
+## Kebutuhan Sistem
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+ dengan ekstensi `mbstring`, `openssl`, `pdo_mysql`, `curl`, `fileinfo`
+- Composer 2+
+- Node 18+ & npm (untuk aset via Vite)
+- MySQL/MariaDB (disarankan nama database `jatilawang_adventure`)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Langkah Instalasi Cepat
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. **Clone & install**
+	```bash
+	git clone https://github.com/Bilabong29/Jatilawang_web.git
+	cd jatilawang-adventure2
+	composer install
+	npm install
+	```
+2. **Salin konfigurasi**
+	```bash
+	cp .env.example .env
+	php artisan key:generate
+	```
+	Sesuaikan kredensial MySQL & nilai `ADMIN_*` bila ingin mengganti data admin default.
+3. **Migrasi & seed**
+	```bash
+	php artisan migrate --seed
+	```
+	Perintah di atas akan membuat semua tabel (rentals, buys, transactions, reviews, dll), mengisi katalog `items`, dan membuat 1 admin.
+4. **Build aset & jalankan**
+	```bash
+	npm run build    # atau npm run dev -- --watch
+	php artisan serve
+	```
 
-## Learning Laravel
+### Kredensial Default
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Admin: `admin@jatilawang.test` / `admin123` (ubah melalui `.env` sebelum deploy production)
+- Customer akun dibuat lewat registrasi/email Google, jadi tidak ada seeding otomatis untuk user biasa sesuai permintaan.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Import Data Penuh (Opsional)
 
-## Laravel Sponsors
+Anda masih bisa mengimpor dump SQL yang dibagikan (`jatilawang_adventure.sql`) bila ingin replika data produksi. Setelah impor, jalankan `php artisan migrate` untuk memastikan skema terbaru tetap sinkron.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Script Penting
 
-### Premium Partners
+- `php artisan migrate:fresh --seed` – reset database sesuai dataset standar.
+- `php artisan db:seed --class=AdminUserSeeder` – regenerasi admin setelah mengganti password.
+- `php artisan queue:work` – jalankan job (opsional bila mengganti `QUEUE_CONNECTION`).
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Struktur Data
 
-## Contributing
+- Stok sewa/beli tersimpan di tabel `items` (`rental_stock`, `sale_stock`).
+- Rincian transaksi ada pada `transactions` & `transaction_items` dengan relasi polymorphic ringan.
+- Review pelanggan menggunakan tabel `ratings` (per transaksi) dan `reviews` (review publik singkat) sesuai kebutuhan halaman katalog.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Kontribusi & Saran
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Silakan buat issue/PR jika menemukan bug. Untuk perubahan signifikan di schema, jalankan `php artisan schema:dump` atau dokumentasikan di `MIGRATION_MAP.md` supaya tim lain mudah mengikuti.
