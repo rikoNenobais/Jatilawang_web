@@ -2,18 +2,19 @@
 // routes/web.php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReviewController as ReviewControllerCust;
+use App\Http\Controllers\TransactionController as TransactionControllerCust;
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ItemController;
 use App\Http\Controllers\Admin\RentalController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ReviewController;
-use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\ReviewController as ReviewControllerAdmin;
+use App\Http\Controllers\Admin\TransactionController as TransactionControllerAdmin;
 
 /**
  * -------------------------
@@ -27,10 +28,6 @@ Route::get('/', [ProductController::class, 'home'])->name('home');
 // Katalog & detail produk (publik bisa lihat)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{item_name}', [ProductController::class, 'show'])->name('products.show');
-
-// Product reviews endpoints 
-Route::get('/products/{productKey}/reviews', [ProductReviewController::class, 'index'])->name('products.reviews.index');
-Route::post('/products/{productKey}/reviews', [ProductReviewController::class, 'store'])->middleware('auth')->name('products.reviews.store');
 
 // Keranjang (boleh guest; simpan di session)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -92,6 +89,21 @@ Route::middleware(['auth'])->group(function () {
 
     // Orders - HANYA UNTUK CUSTOMER
     Route::get('/profile/orders', [ProfileController::class, 'orders'])->name('profile.orders');
+    Route::post('/transactions/{transaction}/cancel', [TransactionControllerCust::class, 'cancel'])
+    ->name('transactions.cancel');
+    
+     // Reviews
+    Route::get('/reviews/create/{type}/{id}', [ReviewControllerCust::class, 'create'])
+        ->name('reviews.create');
+    Route::post('/reviews/store/{type}/{id}', [ReviewControllerCust::class, 'store'])
+        ->name('reviews.store');
+    Route::put('/reviews/{rating}', [ReviewControllerCust::class, 'update'])
+        ->name('reviews.update');
+    Route::delete('/reviews/{rating}', [ReviewControllerCust::class, 'destroy'])
+        ->name('reviews.destroy');
+
+    Route::get('/products/{product}/reviews', [ProductController::class, 'reviews'])->name('products.reviews.index');
+    Route::get('/products/{item_name}/reviews-page', [ProductController::class, 'reviewsPage'])->name('products.reviews.page');
 });
 
 /**
@@ -118,16 +130,20 @@ Route::middleware(['auth', 'admin'])
         Route::resource('buys', \App\Http\Controllers\Admin\BuyController::class);
 
         // Transactions (BARU)
-        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
-        Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-        Route::post('/transactions/{transaction}/verify', [TransactionController::class, 'verify'])->name('transactions.verify');
-        Route::post('/transactions/{transaction}/reject', [TransactionController::class, 'reject'])->name('transactions.reject');
+        Route::get('/transactions', [TransactionControllerAdmin::class, 'index'])->name('transactions.index');
+        Route::get('/transactions/{transaction}', [TransactionControllerAdmin::class, 'show'])->name('transactions.show');
+        Route::post('/transactions/{transaction}/verify', [TransactionControllerAdmin::class, 'verify'])->name('transactions.verify');
+        Route::post('/transactions/{transaction}/reject', [TransactionControllerAdmin::class, 'reject'])->name('transactions.reject');
+
+        Route::post('/transactions/{transaction}/cancel', [TransactionControllerAdmin::class, 'cancel'])
+        ->name('admin.transactions.cancel');
+
 
         // User (ubah role) 
         Route::resource('users', UserController::class)->only(['index', 'show']);
 
         // Review
-        Route::resource('reviews', ReviewController::class)->only(['index', 'update', 'destroy']);
+        Route::resource('reviews', ReviewControllerAdmin::class)->only(['index', 'update', 'destroy']);
 
         // Financial Report
         Route::get('/financial-report', [DashboardController::class, 'financialReport'])->name('financial-report');
@@ -138,6 +154,10 @@ Route::middleware(['auth', 'admin'])
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password'); 
         Route::put('/profile/change-password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+        
+        Route::get('/reviews/{rating}', [ReviewControllerAdmin::class, 'show'])->name('admin.reviews.show');
+        Route::get('/reviews/{rating}', [ReviewControllerAdmin::class, 'show'])->name('reviews.show');
     });
 
 require __DIR__.'/auth.php';

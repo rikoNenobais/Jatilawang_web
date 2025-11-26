@@ -12,9 +12,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->decimal('total_amount', 10, 2);
             $table->enum('payment_method', ['qris', 'transfer', 'cash']);
-            $table->enum('payment_status', ['menunggu_pembayaran', 'menunggu_verifikasi', 'terbayar', 'gagal'])->default('menunggu_pembayaran');
+            $table->enum('payment_status', ['menunggu_pembayaran', 'menunggu_verifikasi', 'terbayar', 'gagal','dibatalkan'])->default('menunggu_pembayaran');
             $table->string('payment_proof')->nullable();
             $table->timestamp('paid_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->enum('cancelled_by', ['customer', 'admin'])->nullable();
+            $table->text('cancellation_reason')->nullable();
             $table->timestamps();
         });
     }

@@ -7,10 +7,10 @@ use App\Models\Rental;
 use App\Models\Buy;
 use App\Models\Item;
 use App\Models\User;
-use App\Models\Review;
-use App\Models\Transaction; // TAMBAH INI
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\Rating as Review;
 
 class DashboardController extends Controller
 {
@@ -19,47 +19,36 @@ class DashboardController extends Controller
         $currentMonth = now()->month;
         $currentYear = now()->year;
 
-        // Total counts
-        $totalRentals = Rental::count();
-        $totalItems = Item::count();
+        // Total counts - FIX: Hanya peminjaman aktif (sedang_berjalan)
+        $totalRentals = Rental::where('order_status', 'sedang_berjalan')->count();
+        $totalItem = Item::count();
         $totalUsers = User::count();
         $totalReviews = Review::count();
 
-        // Monthly revenue calculations - PAKAI TRANSACTIONS
-        $monthlyRevenue = Transaction::where('payment_status', 'terbayar')
+        // Monthly revenue calculations
+        $monthlyRevenueRentals = Transaction::where('payment_status', 'terbayar')
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
+            ->whereHas('transactionItems', function($query) {
+                $query->where('order_type', 'rental');
+            })
             ->sum('total_amount');
 
-        // Breakdown revenue dari transaction items
-        $monthlyRevenueBreakdown = Transaction::where('payment_status', 'terbayar')
+        $monthlyRevenueBuy = Transaction::where('payment_status', 'terbayar')
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
-            ->with(['transactionItems' => function($query) {
-                $query->selectRaw('order_type, SUM(amount) as total')
-                      ->groupBy('order_type');
-            }])
-            ->get();
+            ->whereHas('transactionItems', function($query) {
+                $query->where('order_type', 'buy');
+            })
+            ->sum('total_amount');
 
-        $monthlyRevenueRentals = 0;
-        $monthlyRevenueBuy = 0;
+        $monthlyTotalProfit = $monthlyRevenueRentals + $monthlyRevenueBuy;
 
-        foreach ($monthlyRevenueBreakdown as $transaction) {
-            foreach ($transaction->transactionItems as $item) {
-                if ($item->order_type === 'rental') {
-                    $monthlyRevenueRentals += $item->total;
-                } elseif ($item->order_type === 'buy') {
-                    $monthlyRevenueBuy += $item->total;
-                }
-            }
-        }
-
-        $monthlyTotalProfit = $monthlyRevenue;
-
-        // Latest rentals yang sudah terbayar
+        // Latest rentals yang sudah terbayar dan status aktif
         $latestRentals = Rental::whereHas('transaction', function($query) {
                 $query->where('payment_status', 'terbayar');
             })
+            ->whereIn('order_status', ['dikonfirmasi', 'sedang_berjalan'])
             ->with('user')
             ->orderBy('created_at', 'desc')
             ->limit(5)
@@ -67,7 +56,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'totalRentals',
-            'totalItems',
+            'totalItem',
             'totalUsers',
             'totalReviews',
             'monthlyRevenueRentals',

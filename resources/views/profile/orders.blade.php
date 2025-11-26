@@ -22,6 +22,8 @@
                     <h3 class="text-sm font-medium text-blue-800">Info Transaksi</h3>
                     <div class="mt-2 text-sm text-blue-700">
                         <p>• Pesanan akan diproses dalam 1x24 jam setelah pembayaran terverifikasi</p>
+                        <p>• Anda dapat membatalkan transaksi yang belum diproses</p>
+                        <p>• Beri review untuk pesanan yang sudah selesai</p>
                     </div>
                 </div>
             </div>
@@ -37,6 +39,21 @@
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-green-700">{{ session('success') }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(session('error'))
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-700">{{ session('error') }}</p>
                 </div>
             </div>
         </div>
@@ -60,6 +77,7 @@
                             @if($transaction->payment_status === 'terbayar') bg-green-100 text-green-800
                             @elseif($transaction->payment_status === 'menunggu_verifikasi') bg-yellow-100 text-yellow-800
                             @elseif($transaction->payment_status === 'menunggu_pembayaran') bg-blue-100 text-blue-800
+                            @elseif($transaction->payment_status === 'dibatalkan') bg-gray-100 text-gray-800
                             @else bg-red-100 text-red-800 @endif">
                             {{ str_replace('_', ' ', $transaction->payment_status) }}
                         </span>
@@ -72,15 +90,19 @@
                     </div>
                 </div>
 
-                {{-- Rental Orders dalam transaksi ini --}}
+                {{-- Rental Orders --}}
                 @foreach($transaction->rentals as $rental)
                 <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:bg-gray-50 transition">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center gap-4 mb-2">
                                 <h3 class="font-medium text-gray-900">📅 Sewa - SEWA-{{ $rental->rental_id }}</h3>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ ucfirst(str_replace('_', ' ', $rental->order_status)) }}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    @if($rental->order_status === 'selesai') bg-green-100 text-green-800
+                                    @elseif($rental->order_status === 'dibatalkan') bg-gray-100 text-gray-800
+                                    @elseif($rental->order_status === 'sedang_berjalan') bg-purple-100 text-purple-800
+                                    @endif">
+                                    {{ str_replace('_', ' ', $rental->order_status) }}
                                 </span>
                             </div>
                             <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
@@ -91,28 +113,39 @@
                                 <div>Subtotal:</div>
                                 <div class="font-medium">Rp {{ number_format($rental->total_price, 0, ',', '.') }}</div>
                             </div>
-                            
-                            {{-- Status Info --}}
-                            @if($rental->order_status === 'menunggu_verifikasi')
-                            <p class="text-xs text-yellow-600 mt-2">🕐 Menunggu verifikasi admin</p>
-                            @elseif($rental->order_status === 'dikonfirmasi')
-                            <p class="text-xs text-blue-600 mt-2">✅ Pesanan dikonfirmasi</p>
-                            @elseif($rental->order_status === 'sedang_berjalan')
-                            <p class="text-xs text-purple-600 mt-2">🔄 Sewa sedang berjalan</p>
-                            @elseif($rental->order_status === 'selesai')
-                            <p class="text-xs text-green-600 mt-2">🎉 Sewa telah selesai</p>
+
+                            {{-- Tampilkan rating jika sudah direview --}}
+                            @if($rental->order_status === 'selesai' && $rental->ratings->count() > 0)
+                            <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div class="flex items-center gap-2 text-sm text-green-800">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    <span class="font-medium">Rating Anda:</span>
+                                    <div class="flex items-center gap-1">
+                                        @php $rating = $rental->ratings->first()->rating_value; @endphp
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="{{ $i <= $rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                        <span class="text-green-700 ml-1">({{ $rating }}/5)</span>
+                                    </div>
+                                </div>
+                                @if($rental->ratings->first()->comment)
+                                <p class="text-sm text-green-700 mt-1 italic">"{{ $rental->ratings->first()->comment }}"</p>
+                                @endif
+                            </div>
                             @endif
                         </div>
                         <div class="text-right">
-                            {{-- REVIEW BUTTON - Hanya untuk order selesai --}}
-                            @if($rental->order_status === 'selesai')
-                            <button onclick="openReviewModal()" 
-                                    class="inline-block px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition mb-2">
-                                Beri Review
-                            </button>
+                            {{-- REVIEW BUTTON - Hanya untuk order selesai dan belum ada rating --}}
+                            @if($rental->order_status === 'selesai' && $rental->ratings->count() === 0)
+                            <a href="{{ route('reviews.create', ['rental', $rental->rental_id]) }}" 
+                               class="inline-block px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition mb-2">
+                                ✨ Beri Review
+                            </a>
                             @endif
                             
-                            {{-- WHATSAPP BUTTON - Untuk pesanan yang butuh bantuan --}}
+                            {{-- WHATSAPP BUTTON --}}
                             @if(in_array($rental->order_status, ['menunggu_verifikasi', 'dikonfirmasi', 'sedang_berjalan']))
                             <a href="https://wa.me/6288888888888?text={{ urlencode("Halo Admin Jatilawang Adventure,
 
@@ -126,7 +159,7 @@ Mohon info update terbaru.
 
 Terima kasih") }}" 
                                target="_blank"
-                               class="inline-block px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
+                               class="inline-block px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
                                 📞 Tanya Admin
                             </a>
                             @endif
@@ -135,15 +168,19 @@ Terima kasih") }}"
                 </div>
                 @endforeach
 
-                {{-- Buy Orders dalam transaksi ini --}}
+                {{-- Buy Orders --}}
                 @foreach($transaction->buys as $buy)
                 <div class="border border-gray-200 rounded-lg p-4 mb-4 hover:bg-gray-50 transition">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center gap-4 mb-2">
                                 <h3 class="font-medium text-gray-900">🛒 Beli - BELI-{{ $buy->buy_id }}</h3>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ ucfirst(str_replace('_', ' ', $buy->order_status)) }}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    @if($buy->order_status === 'selesai') bg-green-100 text-green-800
+                                    @elseif($buy->order_status === 'dibatalkan') bg-gray-100 text-gray-800
+                                    @elseif(in_array($buy->order_status, ['diproses', 'dikirim'])) bg-purple-100 text-purple-800
+                                    @endif">
+                                    {{ str_replace('_', ' ', $buy->order_status) }}
                                 </span>
                             </div>
                             <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
@@ -158,30 +195,39 @@ Terima kasih") }}"
                                 <div class="text-xs">{{ $buy->shipping_address }}</div>
                             </div>
                             @endif
-                            
-                            {{-- Status Info --}}
-                            @if($buy->order_status === 'menunggu_verifikasi')
-                            <p class="text-xs text-yellow-600 mt-2">🕐 Menunggu verifikasi admin</p>
-                            @elseif($buy->order_status === 'dikonfirmasi')
-                            <p class="text-xs text-blue-600 mt-2">✅ Pesanan dikonfirmasi</p>
-                            @elseif($buy->order_status === 'diproses')
-                            <p class="text-xs text-purple-600 mt-2">🔄 Pesanan sedang diproses</p>
-                            @elseif($buy->order_status === 'dikirim')
-                            <p class="text-xs text-orange-600 mt-2">🚚 Pesanan sedang dikirim</p>
-                            @elseif($buy->order_status === 'selesai')
-                            <p class="text-xs text-green-600 mt-2">🎉 Pesanan telah selesai</p>
+
+                            {{-- Tampilkan rating jika sudah direview --}}
+                            @if($buy->order_status === 'selesai' && $buy->ratings->count() > 0)
+                            <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div class="flex items-center gap-2 text-sm text-green-800">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    <span class="font-medium">Rating Anda:</span>
+                                    <div class="flex items-center gap-1">
+                                        @php $rating = $buy->ratings->first()->rating_value; @endphp
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="{{ $i <= $rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                        <span class="text-green-700 ml-1">({{ $rating }}/5)</span>
+                                    </div>
+                                </div>
+                                @if($buy->ratings->first()->comment)
+                                <p class="text-sm text-green-700 mt-1 italic">"{{ $buy->ratings->first()->comment }}"</p>
+                                @endif
+                            </div>
                             @endif
                         </div>
                         <div class="text-right">
-                            {{-- REVIEW BUTTON - Hanya untuk order selesai --}}
-                            @if($buy->order_status === 'selesai')
-                            <button onclick="openReviewModal()" 
-                                    class="inline-block px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition mb-2">
-                                Beri Review
-                            </button>
+                            {{-- REVIEW BUTTON - Hanya untuk order selesai dan belum ada rating --}}
+                            @if($buy->order_status === 'selesai' && $buy->ratings->count() === 0)
+                            <a href="{{ route('reviews.create', ['buy', $buy->buy_id]) }}" 
+                               class="inline-block px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition mb-2">
+                                ✨ Beri Review
+                            </a>
                             @endif
                             
-                            {{-- WHATSAPP BUTTON - Untuk pesanan yang butuh bantuan --}}
+                            {{-- WHATSAPP BUTTON --}}
                             @if(in_array($buy->order_status, ['menunggu_verifikasi', 'dikonfirmasi', 'diproses', 'dikirim']))
                             <a href="https://wa.me/6288888888888?text={{ urlencode("Halo Admin Jatilawang Adventure,
 
@@ -195,7 +241,7 @@ Mohon info update terbaru.
 
 Terima kasih") }}" 
                                target="_blank"
-                               class="inline-block px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition">
+                               class="inline-block px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
                                 📞 Tanya Admin
                             </a>
                             @endif
@@ -209,25 +255,48 @@ Terima kasih") }}"
                     <div class="flex justify-between items-center">
                         <div class="text-sm text-gray-600">
                             @if($transaction->payment_status === 'menunggu_pembayaran')
-                            <p class="text-yellow-600">💳 Silakan selesaikan pembayaran</p>
+                            <p class="text-yellow-600">Silakan selesaikan pembayaran</p>
                             @elseif($transaction->payment_status === 'menunggu_verifikasi')
-                            <p class="text-blue-600">⏳ Menunggu verifikasi pembayaran</p>
+                            <p class="text-blue-600">Menunggu verifikasi pembayaran</p>
                             @elseif($transaction->payment_status === 'terbayar')
-                            <p class="text-green-600">✅ Pembayaran terverifikasi</p>
+                            <p class="text-green-600">Pembayaran terverifikasi</p>
+                            @elseif($transaction->payment_status === 'dibatalkan')
+                            <p class="text-gray-600">Transaksi dibatalkan</p>
                             @endif
                         </div>
                         
-                        @if($transaction->payment_status === 'menunggu_pembayaran')
-                        <a href="{{ route('payment.show', $transaction->transaction_id) }}" 
-                           class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                            Bayar Sekarang
-                        </a>
-                        @endif
+                        <div class="flex gap-2">
+                            @if($transaction->payment_status === 'menunggu_pembayaran')
+                            <a href="{{ route('payment.show', $transaction->transaction_id) }}" 
+                               class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                                Bayar Sekarang
+                            </a>
+                            @endif
+                            
+                            {{-- CANCEL TRANSACTION BUTTON - Hanya untuk status menunggu --}}
+                            @if(in_array($transaction->payment_status, ['menunggu_pembayaran', 'menunggu_verifikasi']))
+                            <form action="{{ route('transactions.cancel', $transaction) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" 
+                                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                                        onclick="return confirm('Batalkan transaksi ini? Semua pesanan dalam transaksi akan dibatalkan dan stock akan dikembalikan.')">
+                                    Batalkan Transaksi
+                                </button>
+                            </form>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
             @endforeach
         </div>
+
+        {{-- Pagination --}}
+        @if($transactions->hasPages())
+        <div class="mt-6">
+            {{ $transactions->links() }}
+        </div>
+        @endif
         @endif
 
         @if($transactions->count() === 0)
@@ -242,29 +311,4 @@ Terima kasih") }}"
         @endif
     </div>
 </section>
-
-{{-- Modal Review --}}
-<div id="reviewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <h3 class="text-lg font-medium text-gray-900">Review Produk</h3>
-            <p class="text-sm text-gray-500 mt-2">Fitur review akan segera hadir!</p>
-            <div class="items-center px-4 py-3">
-                <button onclick="closeReviewModal()" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
-                    Tutup
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-function openReviewModal() {
-    document.getElementById('reviewModal').classList.remove('hidden');
-}
-
-function closeReviewModal() {
-    document.getElementById('reviewModal').classList.add('hidden');
-}
-</script>
 @endsection

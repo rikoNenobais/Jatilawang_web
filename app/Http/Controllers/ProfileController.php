@@ -111,15 +111,20 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         
-        if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        // Ambil transactions user dengan relasi rentals dan buys
-        $transactions = Transaction::with(['rentals', 'buys'])
-            ->where('user_id', $user->user_id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Ambil transactions dengan relasi yang diperlukan
+        $transactions = Transaction::with([
+            'rentals.details.item',
+            'buys.detailBuys.item',
+            'rentals.ratings' => function($query) use ($user) {
+                $query->where('user_id', $user->user_id);
+            },
+            'buys.ratings' => function($query) use ($user) {
+                $query->where('user_id', $user->user_id);
+            }
+        ])
+        ->where('user_id', $user->user_id)
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
 
         return view('profile.orders', compact('transactions'));
     }
