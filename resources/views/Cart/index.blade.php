@@ -81,12 +81,12 @@
                                 <div class="flex items-center justify-between mt-4">
                                     <form action="{{ route('cart.update', $cartItem->cart_item_id) }}" method="POST" class="flex items-center gap-3">
                                         @csrf @method('PATCH')
-                                        
+{{--                                         
                                         <div class="flex items-center gap-2">
                                             <label class="text-sm text-gray-600">Hari:</label>
                                             <input type="number" name="days" value="{{ $cartItem->days }}" min="1" 
                                                   class="w-16 px-2 py-1 border border-gray-300 rounded text-sm">
-                                        </div>
+                                        </div> --}}
 
                                         <div class="flex items-center gap-2">
                                             <label class="text-sm text-gray-600">Qty:</label>

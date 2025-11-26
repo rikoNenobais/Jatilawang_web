@@ -66,7 +66,7 @@
                     @endif
                 </div>
 
-                {{-- Days pills (interactive) --}}
+                {{-- Days pills (interactive)
                 @if($item->is_rentable && $item->rental_stock > 0)
                 <div class="mb-4">
                     <p class="font-medium text-gray-800 mb-2">Sewa Berapa Hari :</p>
@@ -78,7 +78,7 @@
                     </div>
                     <input type="hidden" id="selectedDays" name="days" value="1">
                 </div>
-                @endif
+                @endif --}}
 
                 {{-- Material (optional) --}}
                 @if($item->material ?? false)
@@ -113,11 +113,11 @@
 
                             <div class="text-gray-800 text-lg font-semibold">
                                 @if($item->is_rentable && $item->rental_stock > 0)
-                                    Total Sewa: <span id="totalPrice" class="text-emerald-800">
+                                    Total Harga: <span id="totalPrice" class="text-emerald-800">
                                         Rp {{ number_format($rentalPrice, 0, ',', '.') }}
                                     </span>
                                 @elseif($item->is_sellable && $item->sale_stock > 0)
-                                    Total Beli: <span id="totalPrice" class="text-orange-600">
+                                    Total Harga: <span id="totalPrice" class="text-orange-600">
                                         Rp {{ number_format($salePrice, 0, ',', '.') }}
                                     </span>
                                 @endif
