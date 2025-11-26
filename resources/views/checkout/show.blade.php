@@ -29,6 +29,8 @@
             <div class="lg:col-span-2">
                 <form action="{{ route('checkout.process') }}" method="POST" enctype="multipart/form-data" id="checkoutForm">
                     @csrf
+                    <input type="hidden" name="shipping_lat" id="shipping_lat" value="{{ old('shipping_lat') }}">
+                    <input type="hidden" name="shipping_lng" id="shipping_lng" value="{{ old('shipping_lng') }}">
 
                     {{-- Delivery Option --}}
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -56,9 +58,23 @@
                     {{-- Shipping Address (muncul hanya jika delivery dipilih) --}}
                     <div id="shippingAddressSection" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 hidden">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Alamat Pengiriman</h3>
-                        <textarea name="shipping_address" rows="4" 
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
-                                  placeholder="Masukkan alamat lengkap pengiriman di area Jogja...">{{ old('shipping_address', auth()->user()->address) }}</textarea>
+                        <div class="space-y-3">
+                            <textarea id="shippingAddressField" name="shipping_address" rows="4" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600"
+                                      placeholder="Masukkan alamat lengkap pengiriman di area Jogja...">{{ old('shipping_address', auth()->user()->address) }}</textarea>
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <button type="button" id="detectLocationButton"
+                                        class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Gunakan Lokasi Saya
+                                </button>
+                                <p id="locationStatus" class="text-xs text-slate-500">
+                                    Izinkan browser mengakses lokasi agar alamat terisi otomatis.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Payment Method --}}
@@ -178,11 +194,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const deliveryOptions = document.querySelectorAll('input[name="delivery_option"]');
     const shippingAddressSection = document.getElementById('shippingAddressSection');
+    const shippingAddressField = document.getElementById('shippingAddressField');
     const deliveryFeeText = document.getElementById('deliveryFeeText');
     const totalAmountText = document.getElementById('totalAmountText');
     const finalTotal = document.getElementById('finalTotal');
-    
-    const baseTotal = {{ $totalAmount }};
+    const detectLocationButton = document.getElementById('detectLocationButton');
+    const locationStatus = document.getElementById('locationStatus');
+    const shippingLatInput = document.getElementById('shipping_lat');
+    const shippingLngInput = document.getElementById('shipping_lng');
+
+    const baseTotal = Number('{{ $totalAmount }}');
     const deliveryFee = 18000; // Rp 18.000 untuk semua area Jogja
 
     function updateTotals() {
@@ -202,10 +223,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (showAddress) {
                 shippingAddressSection.classList.remove('hidden');
-                document.querySelector('textarea[name="shipping_address"]').setAttribute('required', 'required');
+                shippingAddressField.setAttribute('required', 'required');
+                setLocationStatus('Izinkan akses lokasi atau isi alamat secara manual.', 'info');
             } else {
                 shippingAddressSection.classList.add('hidden');
-                document.querySelector('textarea[name="shipping_address"]').removeAttribute('required');
+                shippingAddressField.removeAttribute('required');
+                shippingLatInput.value = '';
+                shippingLngInput.value = '';
+                setLocationStatus('Opsi antar nonaktif, koordinat dibersihkan.', 'info');
             }
             
             updateTotals();
@@ -214,6 +239,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize on page load
     updateTotals();
+
+    if (detectLocationButton) {
+        detectLocationButton.addEventListener('click', async function () {
+            if (! navigator.geolocation) {
+                setLocationStatus('Browser tidak mendukung geolokasi. Isi alamat secara manual.', 'warn');
+                return;
+            }
+
+            setLocationStatus('Meminta izin lokasi...', 'info');
+            detectLocationButton.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const { latitude, longitude } = position.coords;
+                shippingLatInput.value = latitude.toFixed(7);
+                shippingLngInput.value = longitude.toFixed(7);
+                setLocationStatus('Lokasi ditemukan, mengisi alamat...', 'info');
+
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=18&addressdetails=0`, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Reverse geocoding gagal');
+                    }
+
+                    const data = await response.json();
+                    if (data?.display_name && (!shippingAddressField.value || shippingAddressField.value.length < 10)) {
+                        shippingAddressField.value = data.display_name;
+                    }
+                    setLocationStatus('Koordinat tersimpan. Pastikan alamat sudah sesuai.', 'success');
+                } catch (error) {
+                    console.error(error);
+                    setLocationStatus('Koordinat tersimpan. Silakan isi alamat manual jika belum lengkap.', 'warn');
+                } finally {
+                    detectLocationButton.disabled = false;
+                }
+            }, (error) => {
+                console.error(error);
+                detectLocationButton.disabled = false;
+                if (error.code === error.PERMISSION_DENIED) {
+                    setLocationStatus('Izin lokasi ditolak. Isi alamat secara manual.', 'warn');
+                } else {
+                    setLocationStatus('Gagal mendapatkan lokasi. Coba lagi atau isi alamat manual.', 'warn');
+                }
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        });
+    }
+
+    function setLocationStatus(message, variant) {
+        if (!locationStatus) return;
+        const palette = {
+            success: 'text-emerald-600',
+            warn: 'text-amber-600',
+            info: 'text-slate-500'
+        };
+
+        locationStatus.textContent = message;
+        locationStatus.className = `text-xs ${palette[variant] || palette.info}`;
+    }
 });
 </script>
 @endsection

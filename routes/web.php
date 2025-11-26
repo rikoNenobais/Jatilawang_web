@@ -108,6 +108,9 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
 
+        // Redirect /admin -> /admin/dashboard
+        Route::redirect('/', '/admin/dashboard')->name('home');
+
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

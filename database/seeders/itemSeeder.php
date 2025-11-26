@@ -69,12 +69,15 @@ $items = [
 ];
 
 foreach ($items as $data) {
-    Item::create(array_merge($data, [
-        'description' => $data['item_name'] . ' – Kualitas premium, siap pakai untuk pendakian gunung di Jawa & luar Jawa.',
-    ]));
+    Item::updateOrCreate(
+        ['item_name' => $data['item_name']],
+        array_merge($data, [
+            'description' => $data['item_name'] . ' – Kualitas premium, siap pakai untuk pendakian gunung di Jawa & luar Jawa.',
+        ])
+    );
 }
 
-$this->command->info('20 Item berhasil ditambahkan dengan URL gambar yang sama!');
+$this->command->info('Item seed dijalankan tanpa membuat data duplikat.');
 
     }
 }
