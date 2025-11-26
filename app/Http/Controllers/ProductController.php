@@ -5,9 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use App\Models\Rating;
+use App\Services\ItemRecommendationService;
+use App\Services\SimilarItemService;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private readonly ItemRecommendationService $recommendationService,
+        private readonly SimilarItemService $similarItemService
+    ) {
+    }
+
     // ================== HOMEPAGE (3 TAB PRODUK) ==================
 public function home()
 {   
@@ -50,14 +58,16 @@ public function home()
         // Cari berdasarkan kolom item_id (bukan id!)
         $item = Item::where('item_name', $item_name)->firstOrFail();
 
-        // Produk terkait: kategori sama + item_id beda
-        $relatedProducts = Item::where('category', $item->category)
-                            ->where('item_id', '!=', $item->item_id)
-                            ->inRandomOrder()
-                            ->take(6)
-                            ->get();
+        $similarProducts = $this->similarItemService->forItem($item, 6);
+        $recommendations = $this->recommendationService->forItem($item, 5);
 
-        return view('products.show', compact('item', 'relatedProducts', 'item_name'));
+        return view('products.show', [
+            'item' => $item,
+            'similarProducts' => $similarProducts,
+            'item_name' => $item_name,
+            'coOccurrenceRecommendations' => $recommendations['items'],
+            'recommendationSource' => $recommendations['source'],
+        ]);
     }
 
     // ================== FILTER & SORTING (PRIVATE) ==================

@@ -400,9 +400,13 @@ function goBack() {
 }
 </script>
 
-{{-- Reviews & Related Products --}}
+{{-- Recommendations, Reviews & Related Products --}}
+@includeWhen(($coOccurrenceRecommendations ?? collect())->isNotEmpty(), 'products.partials.co-occurrence', [
+    'items' => $coOccurrenceRecommendations,
+    'source' => $recommendationSource
+])
 @include('products.partials.reviews', ['item' => $item])
-@include('products.partials.related', ['relatedProducts' => $relatedProducts ?? []])
+@include('products.partials.related', ['similarProducts' => $similarProducts ?? collect()])
 
 
 
