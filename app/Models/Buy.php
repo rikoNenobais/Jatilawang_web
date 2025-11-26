@@ -48,4 +48,9 @@ class Buy extends Model
             'transaction_id' // FK di transaction_items
         )->where('transaction_items.order_type', 'buy');
     }
+
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class, 'buy_id', 'buy_id');
+    }
 }

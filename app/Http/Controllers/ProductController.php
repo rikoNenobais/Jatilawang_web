@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use App\Models\Rating;
 
 class ProductController extends Controller
 {
@@ -119,28 +120,90 @@ public function home()
     }
 
 
-    // public function showArray($item_id)
-    // {
-    //     // ambil item berdasarkan item_id
-    //     $item = Item::where('item_id', $item_id)->firstOrFail();
+    public function reviews($productKey)
+    {
+        // Cari item berdasarkan item_id atau item_name
+        $item = Item::where('item_id', $productKey)
+                ->orWhere('item_name', $productKey)
+                ->first();
 
-    //     // mapping ke struktur yang dipakai di Blade sebagai $product
-    //     $product = [
-    //         'id'            => $item->item_id,
-    //         'slug'          => (string) $item->item_id,
-    //         'name'          => $item->item_name,
-    //         'price'         => $item->rental_price_per_day, // bisa kamu format di Blade
-    //         'numeric_price' => (int) ($item->rental_price_per_day ?? 0),
-    //         'img_url'       => $item->url_image,
-    //         'desc'          => $item->description,
-    //         'material'      => $item->material ?? null,  // kalau kolom nggak ada, akan null dan aman
-    //         'stock'         => $item->rental_stock ?? 0,
-    //         'category'      => $item->category ?? null,
-    //     ];
+        if (!$item) {
+            return response()->json([
+                'stats' => ['avg' => 0, 'total' => 0, 'counts' => []],
+                'reviews' => ['data' => []]
+            ]);
+        }
 
-    //     // kalau view kamu juga butuh data produk terkait, bisa ditambah di sini nanti
+        // Ambil reviews untuk item ini
+        $reviews = Rating::with('user')
+            ->where('item_id', $item->item_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    //     return view('products.show', compact('product', 'item'));
-    // }
+        // Hitung statistik
+        $totalReviews = $reviews->count();
+        $avgRating = $totalReviews > 0 ? $reviews->avg('rating_value') : 0;
+        
+        // Hitung distribusi rating
+        $ratingCounts = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $ratingCounts[$i] = $reviews->where('rating_value', $i)->count();
+        }
+
+        return response()->json([
+            'stats' => [
+                'avg' => round($avgRating, 1),
+                'total' => $totalReviews,
+                'counts' => $ratingCounts
+            ],
+            'reviews' => [
+                'data' => $reviews->map(function($review) {
+                    return [
+                        'id' => $review->rating_id,
+                        'rating' => $review->rating_value,
+                        'comment' => $review->comment,
+                        'created_at' => $review->created_at->toISOString(),
+                        'user' => [
+                            'name' => $review->user->full_name ?? $review->user->username ?? 'User',
+                            'email' => $review->user->email
+                        ]
+                    ];
+                })
+            ]
+        ]);
+    }
+
+    // ================== HALAMAN REVIEWS LENGKAP ==================
+    public function reviewsPage($item_name)
+    {
+        // Cari produk
+        $product = Item::where('item_name', $item_name)->firstOrFail();
+
+        // Ambil reviews dengan pagination
+        $reviews = Rating::with('user')
+            ->where('item_id', $product->item_id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // Hitung statistik
+        $totalReviews = Rating::where('item_id', $product->item_id)->count();
+        $avgRating = $totalReviews > 0 ? Rating::where('item_id', $product->item_id)->avg('rating_value') : 0;
+        
+        // Hitung distribusi rating
+        $ratingCounts = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $ratingCounts[$i] = Rating::where('item_id', $product->item_id)
+                                    ->where('rating_value', $i)
+                                    ->count();
+        }
+
+        $stats = [
+            'avg' => round($avgRating, 1),
+            'total' => $totalReviews,
+            'counts' => $ratingCounts
+        ];
+
+        return view('products.reviews', compact('product', 'reviews', 'stats'));
+    }
 
 }

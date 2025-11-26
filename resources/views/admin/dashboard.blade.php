@@ -12,12 +12,12 @@
 @section('content')
     {{-- Kartu ringkasan --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {{-- Total Peminjaman --}}
+        {{-- Peminjaman Aktif --}}
         <div class="bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-sm border border-blue-100 p-6 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 rounded-full -translate-y-8 translate-x-8"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-blue-600 uppercase tracking-wide">Total Peminjaman</p>
+                    <p class="text-sm font-semibold text-blue-600 uppercase tracking-wide">Peminjaman Aktif</p>
                     <p class="mt-2 text-3xl font-bold text-gray-900">{{ $totalRentals ?? 0 }}</p>
                 </div>
                 <div class="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-white text-lg shadow-lg">
@@ -26,7 +26,7 @@
             </div>
             <div class="mt-4 pt-4 border-t border-blue-100">
                 <p class="text-xs text-blue-600/80">
-                    Semua transaksi peminjaman
+                    Sedang berjalan
                 </p>
             </div>
         </div>
@@ -37,7 +37,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-semibold text-emerald-600 uppercase tracking-wide">Total Produk</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ $totalItems ?? 0 }}</p>
+                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ $totalItem ?? 0 }}</p>
                 </div>
                 <div class="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-lg shadow-lg">
                     🎒
@@ -160,7 +160,7 @@
             <div class="relative z-10">
                 <h3 class="font-bold text-lg mb-2">🎉 Selamat datang di dashboard admin!</h3>
                 <p class="text-indigo-100 text-sm leading-relaxed">
-                    Pantau statistik utama seperti peminjaman, produk, pengguna, dan review dari satu tempat.
+                    Pantau statistik utama seperti peminjaman aktif, produk, pengguna, dan review dari satu tempat.
                     Gunakan menu navigasi untuk mengelola data lebih detail dan memantau performa bisnis.
                 </p>
             </div>

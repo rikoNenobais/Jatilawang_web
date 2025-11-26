@@ -1,133 +1,255 @@
-<div id="product-reviews" class="mt-10" data-product-key="{{ $item->item_id }}">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="bg-white rounded-lg p-6 border">
-      <div id="reviews-summary" class="mb-6">
-        <div class="flex items-center gap-6">
-          <div class="text-center p-6 bg-gray-50 rounded-md">
-            <div id="avgRating" class="text-4xl font-bold">-</div>
-            <div class="text-sm text-gray-500">of <span id="totalReviews">-</span> reviews</div>
-            <div class="mt-2 text-amber-400" id="avgStars"> </div>
+<div id="product-reviews" class="mt-12" data-product-key="{{ $item->item_id }}">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Ulasan Produk</h2>
+      <p class="text-gray-600">Lihat pengalaman pengguna lain dengan produk ini</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <!-- Rating Summary -->
+      <div id="reviews-summary" class="p-6 border-b border-gray-200">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center gap-8">
+          <!-- Average Rating -->
+          <div class="text-center lg:text-left">
+            <div class="flex items-center gap-4">
+              <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-6">
+                <div id="avgRating" class="text-5xl font-bold text-gray-900 mb-1">-</div>
+                <div class="flex justify-center lg:justify-start gap-1 mb-2" id="avgStars"></div>
+                <div class="text-sm text-gray-600">
+                  <span id="totalReviews" class="font-semibold">-</span> ulasan
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="flex-1" id="ratingBars"><!-- bars via JS --></div>
+
+          <!-- Rating Distribution -->
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-900 mb-4">Distribusi Rating</h3>
+            <div id="ratingBars" class="space-y-3">
+              <!-- bars via JS -->
+            </div>
+          </div>
         </div>
       </div>
 
-      <div id="reviewsList" class="space-y-4"> <!-- reviews injected here -->
+      <!-- Reviews List -->
+      <div id="reviewsList" class="divide-y divide-gray-200">
+        <!-- reviews injected here -->
+        <div class="p-8 text-center text-gray-500" id="loadingReviews">
+          <div class="animate-pulse">
+            <div class="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+            <div class="h-4 bg-gray-200 rounded w-48 mx-auto mb-2"></div>
+            <div class="h-3 bg-gray-200 rounded w-32 mx-auto"></div>
+          </div>
+        </div>
       </div>
 
+      <!-- View All Reviews Link -->
+      <div id="viewAllReviews" class="hidden p-6 border-t border-gray-200 text-center">
+        <a href="{{ route('products.reviews.page', $item->item_name) }}" 
+           class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          <span>Lihat Semua Ulasan</span>
+          <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Info untuk user yang belum login -->
       @auth
-      <form id="reviewForm" class="mt-6">
-        @csrf
-        <div class="mb-2">Rate:</div>
-        <div class="flex items-center gap-2 mb-3" id="starInput">
-          @for($i=5;$i>=1;$i--)
-            <label class="cursor-pointer">
-              <input type="radio" name="rating" value="{{ $i }}" class="hidden star-radio" />
-              <span class="px-2 py-1 border rounded text-sm">{{ $i }} ★</span>
-            </label>
-          @endfor
+        <div class="p-6 bg-blue-50 border-t border-blue-200">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <div class="text-sm text-blue-700">
+              <span class="font-semibold">Hanya untuk pembeli terverifikasi:</span> 
+              Anda dapat memberikan review setelah menyelesaikan transaksi produk ini.
+            </div>
+          </div>
         </div>
-        <textarea name="comment" id="comment" rows="3" class="w-full border rounded p-2" placeholder="Leave Comment"></textarea>
-        <div class="mt-3 text-right">
-          <button type="submit" class="px-4 py-2 bg-emerald-900 text-white rounded">Kirim Review</button>
-        </div>
-      </form>
       @else
-        <div class="mt-6 text-sm text-gray-600">Silakan <a href="{{ route('login') }}" class="text-emerald-800">login</a> untuk mengirim review.</div>
+        <div class="p-6 bg-gray-50 border-t border-gray-200 text-center">
+          <p class="text-sm text-gray-600">
+            <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800 font-semibold">Login</a> 
+            untuk melihat apakah Anda dapat memberikan review
+          </p>
+        </div>
       @endauth
-
     </div>
   </div>
 </div>
-
+<!-- Di bagian BOTTOM file blade, sebelum </body> -->
 <script>
-(function(){
-  const root = document.getElementById('product-reviews');
-  if(!root) return;
-  const productKey = encodeURIComponent(root.dataset.productKey);
-  const reviewsUrl = `/products/${productKey}/reviews`;
+console.log('=== REVIEW SCRIPT STARTING ===');
 
-  function el(tag, attrs = {}, children = []){
-    const e = document.createElement(tag);
-    Object.keys(attrs).forEach(k=> e.setAttribute(k, attrs[k]));
-    (Array.isArray(children) ? children : [children]).forEach(c=>{
-      if(typeof c === 'string') e.appendChild(document.createTextNode(c)); else if(c) e.appendChild(c);
-    });
-    return e;
-  }
-
-  function renderBars(stats){
-    const container = document.getElementById('ratingBars');
-    container.innerHTML = '';
-    const total = stats.total || 0;
-    for(let star=5; star>=1; star--){
-      const count = stats.counts[star] || 0;
-      const pct = total ? Math.round((count/total)*100) : 0;
-      const row = el('div', {class:'flex items-center gap-3 mb-2'});
-      row.appendChild(el('div', {class:'w-24 text-sm text-gray-700'}, [`${['','Kurang Baik','Biasa','Lumayan','Baik','Luar Biasa'][star] || star}`]));
-      const barWrap = el('div', {class:'flex-1 bg-gray-200 h-3 rounded overflow-hidden'});
-      const bar = el('div', {class:'bg-amber-400 h-3', style:`width:${pct}%`});
-      barWrap.appendChild(bar);
-      row.appendChild(barWrap);
-      row.appendChild(el('div', {class:'w-8 text-sm text-gray-600 text-right'}, [`${count}`]));
-      container.appendChild(row);
+// Tunggu sampai SEMUA HTML selesai load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded, starting reviews...');
+    
+    // Update debug info
+    const debugApiUrl = document.getElementById('debug-api-url');
+    const debugStatus = document.getElementById('debug-status');
+    
+    if (debugApiUrl && debugStatus) {
+        debugApiUrl.textContent = `/products/{{ $item->item_id }}/reviews`;
+        debugStatus.textContent = 'Status: JavaScript loaded, fetching data...';
     }
-  }
 
-  function renderReviews(list){
-    const container = document.getElementById('reviewsList');
-    container.innerHTML = '';
-    list.data.forEach(r=>{
-      const card = el('div', {class:'p-4 bg-gray-50 rounded-md'});
-      const top = el('div', {class:'flex items-center justify-between mb-2'});
-      top.appendChild(el('div', {class:'font-semibold'}, [r.user?.name || 'User']));
-      top.appendChild(el('div', {class:'text-sm text-gray-500'}, [new Date(r.created_at).toLocaleDateString()]));
-      card.appendChild(top);
-      const stars = el('div', {class:'text-amber-400 mb-2'}, [ '★'.repeat(r.rating) ]);
-      card.appendChild(stars);
-      card.appendChild(el('div', {}, [r.comment || '']));
-      container.appendChild(card);
-    });
-  }
-
-  async function refresh(){
-    try{
-      const res = await fetch(reviewsUrl);
-      if(!res.ok) return;
-      const json = await res.json();
-      const stats = json.stats || {avg:0,total:0,counts:{}};
-      document.getElementById('avgRating').textContent = stats.avg.toFixed(1);
-      document.getElementById('totalReviews').textContent = stats.total;
-      document.getElementById('avgStars').textContent = '★'.repeat(Math.round(stats.avg));
-      renderBars({counts: stats.counts, total: stats.total});
-      renderReviews(json.reviews);
-    }catch(err){
-      console.error(err);
+    // Simple function to create elements
+    function createElement(tag, className, html) {
+        const el = document.createElement(tag);
+        el.className = className;
+        el.innerHTML = html;
+        return el;
     }
-  }
 
-  refresh();
+    // Load reviews function
+    function loadReviews() {
+        const productId = {{ $item->item_id }};
+        const url = `/products/${productId}/reviews`;
+        
+        console.log('Fetching from:', url);
+        
+        fetch(url)
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+                
+                // Update debug status
+                if (debugStatus) {
+                    debugStatus.textContent = `Status: Data loaded successfully (${data.stats.total} reviews)`;
+                }
+                
+                // Update rating summary
+                document.getElementById('avgRating').textContent = data.stats.avg.toFixed(1);
+                document.getElementById('totalReviews').textContent = data.stats.total;
+                
+                // Update stars
+                const avgStars = Math.round(data.stats.avg);
+                const starsContainer = document.getElementById('avgStars');
+                starsContainer.innerHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    const star = createElement('span', `text-2xl ${i <= avgStars ? 'text-amber-400' : 'text-gray-300'}`, '★');
+                    starsContainer.appendChild(star);
+                }
+                
+                // Update rating bars
+                const barsContainer = document.getElementById('ratingBars');
+                barsContainer.innerHTML = '';
+                for (let star = 5; star >= 1; star--) {
+                    const count = data.stats.counts[star] || 0;
+                    const percentage = data.stats.total ? Math.round((count / data.stats.total) * 100) : 0;
+                    
+                    const barRow = createElement('div', 'flex items-center gap-4', '');
+                    barRow.appendChild(createElement('div', 'flex items-center gap-2 w-20', 
+                        `<span class="text-sm font-medium text-gray-900">${star}</span>
+                         <span class="text-amber-400">★</span>`));
+                    
+                    const progressBar = createElement('div', 'flex-1 bg-gray-200 rounded-full h-2 overflow-hidden',
+                        `<div class="bg-amber-400 h-2 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>`);
+                    barRow.appendChild(progressBar);
+                    
+                    barRow.appendChild(createElement('div', 'w-16 text-right',
+                        `<span class="text-sm font-medium text-gray-900">${count}</span>
+                         <span class="text-xs text-gray-500 ml-1">(${percentage}%)</span>`));
+                    
+                    barsContainer.appendChild(barRow);
+                }
+                
+                // Update reviews list
+                const reviewsContainer = document.getElementById('reviewsList');
+                const loadingElement = document.getElementById('loadingReviews');
+                
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+                
+                if (data.reviews.data.length === 0) {
+                    reviewsContainer.innerHTML = `
+                        <div class="p-12 text-center">
+                            <div class="w-24 h-24 mx-auto mb-4 text-gray-300">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada ulasan</h3>
+                            <p class="text-gray-500">Jadilah yang pertama memberikan ulasan untuk produk ini</p>
+                        </div>
+                    `;
+                } else {
+                    reviewsContainer.innerHTML = '';
+                    const previewReviews = data.reviews.data.slice(0, 3);
+                    
+                    previewReviews.forEach(review => {
+                        const reviewCard = createElement('div', 'p-6 hover:bg-gray-50 transition-colors', '');
+                        
+                        const userInitial = (review.user?.name || 'U').charAt(0).toUpperCase();
+                        const userName = review.user?.name || 'Pengguna';
+                        const reviewDate = new Date(review.created_at).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                        const comment = review.comment || 'Tidak ada komentar tambahan';
+                        
+                        reviewCard.innerHTML = `
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                        ${userInitial}
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold text-gray-900">${userName}</div>
+                                        <div class="text-sm text-gray-500">${reviewDate}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-amber-400 text-lg mb-3">${stars}</div>
+                            <div class="text-gray-700 leading-relaxed">${comment}</div>
+                        `;
+                        
+                        reviewsContainer.appendChild(reviewCard);
+                    });
+                    
+                    // Show "View All" link if there are more than 3 reviews
+                    if (data.reviews.data.length > 3) {
+                        document.getElementById('viewAllReviews').classList.remove('hidden');
+                    }
+                }
+                
+                console.log('=== REVIEWS LOADED SUCCESSFULLY ===');
+            })
+            .catch(error => {
+                console.error('Error loading reviews:', error);
+                if (debugStatus) {
+                    debugStatus.textContent = 'Status: Error - ' + error.message;
+                }
+                
+                const reviewsContainer = document.getElementById('reviewsList');
+                const loadingElement = document.getElementById('loadingReviews');
+                
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+                
+                reviewsContainer.innerHTML = `
+                    <div class="p-8 text-center text-red-600">
+                        Gagal memuat ulasan. Silakan refresh halaman.
+                    </div>
+                `;
+            });
+    }
 
-  const form = document.getElementById('reviewForm');
-  if(form){
-    form.addEventListener('submit', async function(e){
-      e.preventDefault();
-      const fd = new FormData(form);
-      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      try{
-        const res = await fetch(reviewsUrl, {method:'POST', headers:{'X-CSRF-TOKEN': token}, body: fd});
-        if(res.ok){
-          form.reset();
-          await refresh();
-          alert('Terima kasih atas review Anda');
-        }else{
-          const data = await res.json();
-          alert(data.message || 'Gagal mengirim review');
-        }
-      }catch(err){
-        console.error(err); alert('Network error');
-      }
-    });
-  }
-})();
+    // Start loading reviews
+    loadReviews();
+});
+
+console.log('=== REVIEW SCRIPT INITIALIZED (waiting for DOM) ===');
 </script>

@@ -71,7 +71,7 @@
 
     {{-- Payment Proof --}}
     @if($transaction->payment_proof)
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 no-print">
         <h3 class="text-lg font-semibold text-slate-900 mb-4">Bukti Pembayaran</h3>
         <div class="flex flex-col sm:flex-row gap-6 items-start">
             <div class="flex-shrink-0">
@@ -121,134 +121,198 @@
     </div>
     @endif
 
-    {{-- Rental Orders --}}
-    @if($transaction->rentals->count() > 0)
+    {{-- Printable Invoice --}}
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h3 class="text-lg font-semibold text-slate-900 mb-4">Pesanan Sewa</h3>
-        <div class="space-y-4">
-            @foreach($transaction->rentals as $rental)
-            <div class="border border-slate-200 rounded-lg p-4">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h4 class="font-semibold text-slate-900">SEWA-{{ $rental->rental_id }}</h4>
-                        <p class="text-sm text-slate-600 mt-1">
-                            Periode: {{ \Carbon\Carbon::parse($rental->rental_start_date)->format('d M Y') }} - 
-                            {{ \Carbon\Carbon::parse($rental->rental_end_date)->format('d M Y') }}
-                        </p>
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                            @if($rental->order_status === 'selesai') bg-green-100 text-green-800
-                            @elseif($rental->order_status === 'dikonfirmasi') bg-blue-100 text-blue-800
-                            @elseif($rental->order_status === 'sedang_berjalan') bg-purple-100 text-purple-800
-                            @else bg-yellow-100 text-yellow-800 @endif">
-                            {{ str_replace('_', ' ', $rental->order_status) }}
-                        </span>
-                        <p class="text-lg font-semibold text-slate-900 mt-1">
-                            Rp {{ number_format($rental->total_price, 0, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
+        <div class="flex justify-between items-center mb-6 no-print">
+            <h3 class="text-lg font-semibold text-slate-900">Nota Transaksi</h3>
+            <button onclick="printInvoice()" 
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                🖨️ Cetak Nota
+            </button>
+        </div>
 
-                {{-- Rental Items --}}
-                <div class="border-t border-slate-200 pt-3 mt-3">
-                    <h5 class="text-sm font-medium text-slate-700 mb-2">Items:</h5>
-                    <div class="space-y-2">
-                        @foreach($rental->details as $detail)
-                        <div class="flex justify-between items-center text-sm">
-                            <span>{{ $detail->item->item_name }} (x{{ $detail->quantity }})</span>
-                            <span class="text-slate-600">{{ $detail->days ?? 1 }} hari</span>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
+        {{-- Invoice Content --}}
+        <div id="printable-invoice" class="invoice-content border-2 border-dashed border-slate-300 p-8">
+            {{-- Header --}}
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-slate-900">JATILAWANG ADVENTURE</h1>
+                <p class="text-slate-600">Jl. Parangtritis KM 8.5, Yogyakarta</p>
+                <p class="text-slate-600">Telp: 0812-3456-7890 | Email: info@jatilawang.com</p>
+            </div>
 
-                <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-200">
-                    <div class="text-sm text-slate-600">
-                        Pengiriman: {{ $rental->delivery_option === 'delivery' ? 'Antar' : 'Ambil di Tempat' }}
-                    </div>
-                    <a href="{{ route('admin.rentals.show', $rental) }}" 
-                       class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                        Kelola Pesanan →
-                    </a>
+            {{-- Invoice Info --}}
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="font-semibold text-slate-900 mb-2">INFORMASI TRANSAKSI</h3>
+                    <table class="text-sm">
+                        <tr>
+                            <td class="pr-4 py-1 text-slate-600">No. Transaksi</td>
+                            <td class="font-medium">: TRX-{{ $transaction->transaction_id }}</td>
+                        </tr>
+                        <tr>
+                            <td class="pr-4 py-1 text-slate-600">Tanggal</td>
+                            <td class="font-medium">: {{ $transaction->created_at->format('d/m/Y H:i') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="pr-4 py-1 text-slate-600">Metode Bayar</td>
+                            <td class="font-medium">: {{ strtoupper($transaction->payment_method) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="pr-4 py-1 text-slate-600">Status</td>
+                            <td class="font-medium">: {{ str_replace('_', ' ', $transaction->payment_status) }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-900 mb-2">INFORMASI CUSTOMER</h3>
+                    <table class="text-sm">
+                        <tr>
+                            <td class="pr-4 py-1 text-slate-600">Nama</td>
+                            <td class="font-medium">: {{ $transaction->user->full_name ?? $transaction->user->username }}</td>
+                        </tr>
+                        <tr>
+                            <td class="pr-4 py-1 text-slate-600">Email</td>
+                            <td class="font-medium">: {{ $transaction->user->email }}</td>
+                        </tr>
+                        <tr>
+                            <td class="pr-4 py-1 text-slate-600">Telepon</td>
+                            <td class="font-medium">: {{ $transaction->user->phone_number ?? '-' }}</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
 
-    {{-- Buy Orders --}}
-    @if($transaction->buys->count() > 0)
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h3 class="text-lg font-semibold text-slate-900 mb-4">Pesanan Beli</h3>
-        <div class="space-y-4">
-            @foreach($transaction->buys as $buy)
-            <div class="border border-slate-200 rounded-lg p-4">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h4 class="font-semibold text-slate-900">BELI-{{ $buy->buy_id }}</h4>
-                        @if($buy->shipping_address)
-                        <p class="text-sm text-slate-600 mt-1">
-                            Alamat: {{ Str::limit($buy->shipping_address, 50) }}
-                        </p>
-                        @endif
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                            @if($buy->order_status === 'selesai') bg-green-100 text-green-800
-                            @elseif($buy->order_status === 'dikirim') bg-blue-100 text-blue-800
-                            @elseif($buy->order_status === 'diproses') bg-purple-100 text-purple-800
-                            @else bg-yellow-100 text-yellow-800 @endif">
-                            {{ str_replace('_', ' ', $buy->order_status) }}
-                        </span>
-                        <p class="text-lg font-semibold text-slate-900 mt-1">
-                            Rp {{ number_format($buy->total_price, 0, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-
-                {{-- Buy Items --}}
-                <div class="border-t border-slate-200 pt-3 mt-3">
-                    <h5 class="text-sm font-medium text-slate-700 mb-2">Items:</h5>
-                    <div class="space-y-2">
-                        @foreach($buy->detailBuys as $detail)
-                        <div class="flex justify-between items-center text-sm">
-                            <span>{{ $detail->item->item_name }} (x{{ $detail->quantity }})</span>
-                            <span class="text-slate-600">Rp {{ number_format($detail->total_price, 0, ',', '.') }}</span>
+            {{-- Rental Orders --}}
+            @if($transaction->rentals->count() > 0)
+            <div class="mb-6">
+                <h3 class="font-semibold text-slate-900 border-b pb-2 mb-3">PESANAN SEWA</h3>
+                @foreach($transaction->rentals as $rental)
+                <div class="mb-4 p-3 bg-slate-50 rounded">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-medium">SEWA-{{ $rental->rental_id }}</p>
+                            <p class="text-sm text-slate-600">
+                                Periode: {{ \Carbon\Carbon::parse($rental->rental_start_date)->format('d/m/Y') }} - 
+                                {{ \Carbon\Carbon::parse($rental->rental_end_date)->format('d/m/Y') }}
+                            </p>
                         </div>
-                        @endforeach
+                        <div class="text-right">
+                            <p class="font-semibold">Rp {{ number_format($rental->total_price, 0, ',', '.') }}</p>
+                            <p class="text-sm text-slate-600">{{ str_replace('_', ' ', $rental->order_status) }}</p>
+                        </div>
                     </div>
+                    
+                    <table class="w-full text-sm mt-2">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-1">Item</th>
+                                <th class="text-center py-1">Qty</th>
+                                <th class="text-center py-1">Hari</th>
+                                <th class="text-right py-1">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($rental->details as $detail)
+                            <tr class="border-b">
+                                <td class="py-2">{{ $detail->item->item_name }}</td>
+                                <td class="text-center py-2">{{ $detail->quantity }}</td>
+                                <td class="text-center py-2">{{ $detail->days ?? 1 }}</td>
+                                <td class="text-right py-2">Rp {{ number_format($detail->item->rental_price * $detail->quantity * ($detail->days ?? 1), 0, ',', '.') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
+                @endforeach
+            </div>
+            @endif
 
-                <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-200">
-                    <div class="text-sm text-slate-600">
-                        Pengiriman: {{ $buy->delivery_option === 'delivery' ? 'Antar' : 'Ambil di Tempat' }}
+            {{-- Buy Orders --}}
+            @if($transaction->buys->count() > 0)
+            <div class="mb-6">
+                <h3 class="font-semibold text-slate-900 border-b pb-2 mb-3">PESANAN BELI</h3>
+                @foreach($transaction->buys as $buy)
+                <div class="mb-4 p-3 bg-slate-50 rounded">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-medium">BELI-{{ $buy->buy_id }}</p>
+                            @if($buy->shipping_address)
+                            <p class="text-sm text-slate-600">Alamat: {{ $buy->shipping_address }}</p>
+                            @endif
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold">Rp {{ number_format($buy->total_price, 0, ',', '.') }}</p>
+                            <p class="text-sm text-slate-600">{{ str_replace('_', ' ', $buy->order_status) }}</p>
+                        </div>
                     </div>
-                    <a href="{{ route('admin.buys.show', $buy) }}" 
-                       class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                        Kelola Pesanan →
-                    </a>
+                    
+                    <table class="w-full text-sm mt-2">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-1">Item</th>
+                                <th class="text-center py-1">Qty</th>
+                                <th class="text-right py-1">Harga</th>
+                                <th class="text-right py-1">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($buy->detailBuys as $detail)
+                            <tr class="border-b">
+                                <td class="py-2">{{ $detail->item->item_name }}</td>
+                                <td class="text-center py-2">{{ $detail->quantity }}</td>
+                                <td class="text-right py-2">Rp {{ number_format($detail->item->sale_price, 0, ',', '.') }}</td>
+                                <td class="text-right py-2">Rp {{ number_format($detail->total_price, 0, ',', '.') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endforeach
+            </div>
+            @endif
+
+            {{-- Summary --}}
+            <div class="border-t pt-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-medium">Subtotal:</span>
+                    <span class="font-medium">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</span>
+                </div>
+                @if($transaction->rentals->count() > 0 || $transaction->buys->count() > 0)
+                    @php
+                        $deliveryFee = 0;
+                        if($transaction->rentals->count() > 0 && $transaction->rentals->first()->delivery_option === 'delivery') {
+                            $deliveryFee = 18000;
+                        } elseif($transaction->buys->count() > 0 && $transaction->buys->first()->delivery_option === 'delivery') {
+                            $deliveryFee = 18000;
+                        }
+                    @endphp
+                    @if($deliveryFee > 0)
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">Biaya Pengiriman:</span>
+                        <span class="font-medium">Rp {{ number_format($deliveryFee, 0, ',', '.') }}</span>
+                    </div>
+                    @endif
+                @endif
+                <div class="flex justify-between items-center text-lg font-bold mt-3 pt-3 border-t">
+                    <span>TOTAL:</span>
+                    <span>Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</span>
                 </div>
             </div>
-            @endforeach
+
+            {{-- Footer --}}
+            <div class="text-center mt-8 pt-6 border-t">
+                <p class="text-slate-600 text-sm">Terima kasih atas kepercayaan Anda berbelanja di Jatilawang Adventure</p>
+                <p class="text-slate-500 text-xs mt-2">Nota ini dicetak pada: {{ now()->format('d/m/Y H:i') }}</p>
+            </div>
         </div>
     </div>
-    @endif
 
     {{-- Action Buttons --}}
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center no-print">
         <a href="{{ route('admin.transactions.index') }}" 
            class="text-indigo-600 hover:text-indigo-900 font-medium">
             ← Kembali ke Daftar Transaksi
         </a>
-        
-        <div class="flex gap-3">
-            <button onclick="window.print()" 
-                    class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition">
-                🖨️ Cetak Nota
-            </button>
-        </div>
     </div>
 </div>
 
@@ -257,21 +321,97 @@
 @media print {
     body * {
         visibility: hidden;
+        margin: 0;
+        padding: 0;
     }
-    .bg-white, .bg-white * {
+    
+    #printable-invoice,
+    #printable-invoice * {
         visibility: visible;
     }
-    .bg-white {
-        position: absolute;
+    
+    #printable-invoice {
+        position: fixed;
         left: 0;
         top: 0;
         width: 100%;
+        height: 100%;
+        background: white;
+        z-index: 9999;
         box-shadow: none !important;
-        border: 1px solid #000 !important;
+        border: none !important;
+        padding: 20px !important;
+        margin: 0 !important;
     }
-    .no-print {
+    
+    .no-print,
+    .no-print * {
         display: none !important;
     }
+    
+    .invoice-content {
+        border: none !important;
+        padding: 0 !important;
+        font-size: 14px;
+        max-width: none !important;
+    }
+    
+    .bg-slate-50 {
+        background-color: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+    }
+    
+    /* Improve print quality */
+    table {
+        page-break-inside: auto;
+        width: 100%;
+    }
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    
+    /* Ensure proper spacing */
+    .mb-6 {
+        margin-bottom: 1.5rem;
+    }
+    .mb-4 {
+        margin-bottom: 1rem;
+    }
+    .mb-2 {
+        margin-bottom: 0.5rem;
+    }
+    .mt-8 {
+        margin-top: 2rem;
+    }
+    .pt-4 {
+        padding-top: 1rem;
+    }
+    .pt-6 {
+        padding-top: 1.5rem;
+    }
+}
+
+/* Screen styles for invoice */
+.invoice-content {
+    background: white;
+    font-family: 'Courier New', monospace;
+}
+
+/* Hide border dashes on screen but show content */
+.border-dashed {
+    border-style: solid !important;
 }
 </style>
+
+<script>
+function printInvoice() {
+    window.print();
+}
+
+// Optional: Add print success message
+window.addEventListener('afterprint', function() {
+    console.log('Nota berhasil dicetak');
+});
+</script>
 @endsection
