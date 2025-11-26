@@ -50,7 +50,7 @@
                 </div>
 
                 {{-- Search Bar - Tampil di tablet/desktop --}}
-                <form action="{{ route('products.index') }}" method="get" class="hidden md:block flex-1 max-w-2xl mx-8">
+                <form action="{{ route('products.index') }}" method="GET" class="hidden md:block flex-1 max-w-2xl mx-8">
                     <label class="relative block">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
                             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -59,7 +59,10 @@
                             </svg>
                         </span>
                         <input
-                            type="search" name="q" placeholder="Search"
+                            type="search" 
+                            name="search"  
+                            placeholder="Cari produk..."
+                            value="{{ request('searchCategory') }}"
                             class="w-full h-12 rounded-2xl bg-gray-100 pl-12 pr-4 text-[15px] placeholder:text-gray-400 border-0 focus:ring-2 focus:ring-emerald-600"
                         >
                     </label>
@@ -211,7 +214,7 @@
             <div id="mobile-menu" class="lg:hidden hidden border-t border-gray-200 bg-white py-4">
                 <div class="flex flex-col space-y-4">
                     {{-- Mobile Search --}}
-                    <form action="{{ route('products.index') }}" method="get" class="px-4">
+                    <form action="{{ route('products.index') }}" method="GET" class="px-4">
                         <label class="relative block">
                             <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
                                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -220,12 +223,14 @@
                                 </svg>
                             </span>
                             <input
-                                type="search" name="q" placeholder="Search"
+                                type="search" 
+                                name="search" 
+                                placeholder="Cari produk..."
+                                value="{{ request('searchCategory') }}" 
                                 class="w-full h-12 rounded-xl bg-gray-100 pl-10 pr-4 text-[15px] placeholder:text-gray-400 border-0 focus:ring-2 focus:ring-emerald-600"
                             >
                         </label>
                     </form>
-
                     {{-- Mobile Navigation Links --}}
                     @foreach ($nav as $item)
                         <a href="{{ $item['href'] }}" 

@@ -72,6 +72,12 @@ public function home()
             });
         }
 
+        if ($request->filled('searchCategory')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('category', 'like', "%{$request->search}%");
+            });
+        }
+
         if ($request->has('categories') && is_array($request->categories)) {
             $query->whereIn('category', $request->categories);
         }
