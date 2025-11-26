@@ -6,12 +6,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentController;
-<<<<<<< HEAD
 use App\Http\Controllers\Auth\SocialiteController;
-=======
 use App\Http\Controllers\ReviewController as ReviewControllerCust;
 use App\Http\Controllers\TransactionController as TransactionControllerCust;
->>>>>>> riko
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ItemController;
