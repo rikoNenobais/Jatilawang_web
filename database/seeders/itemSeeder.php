@@ -2,82 +2,362 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Item;
+use Illuminate\Support\Facades\DB;
 
-class itemSeeder extends Seeder
+class ItemSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $url = 'https://tse3.mm.bing.net/th/id/OIP.X6f2A8mSHHPKX5jqbwNDewHaE7?pid=Api&P=0&h=180';
+        $items = [
+            [
+                'item_id' => 1,
+                'item_name' => 'Tenda Camping 2 Orang',
+                'description' => 'Tenda dome untuk 2 orang, bahan waterproof 2000mm, cocok untuk gunung dan pantai.',
+                'category' => 'Tenda',
+                'url_image' => 'https://antarestar.com/wp-content/uploads/2021/01/Tenda-Camping-200-x-200-1.png',
+                'rental_price_per_day' => 50000,
+                'sale_price' => 650000,
+                'rental_stock' => 5,
+                'sale_stock' => 0,
+                'penalty_per_days' => 15000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => '2025-11-24 02:58:09',
+            ],
+            [
+                'item_id' => 2,
+                'item_name' => 'Sleeping Bag Polar',
+                'description' => 'Sleeping bag hangat bahan polar, nyaman untuk suhu dingin sampai 5°C.',
+                'category' => 'Sleeping Bag',
+                'url_image' => 'https://cozmeed.com/wp-content/uploads/2022/11/rug-1666254948933-10.jpeg.jpg',
+                'rental_price_per_day' => 20000,
+                'sale_price' => 250000,
+                'rental_stock' => 10,
+                'sale_stock' => 0,
+                'penalty_per_days' => 8000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => '2025-11-24 02:58:23',
+            ],
+            [
+                'item_id' => 3,
+                'item_name' => 'Carrier 60L',
+                'description' => 'Tas carrier 60 liter, ada raincover dan banyak kompartemen.',
+                'category' => 'Tas',
+                'url_image' => 'https://d1yutv2xslo29o.cloudfront.net/product/variant/media/web/910003194_RED_1_46e4.webp',
+                'rental_price_per_day' => 30000,
+                'sale_price' => 550000,
+                'rental_stock' => 7,
+                'sale_stock' => 0,
+                'penalty_per_days' => 10000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => '2025-11-24 03:00:04',
+            ],
+            [
+                'item_id' => 4,
+                'item_name' => 'Kompor Portable Hiking',
+                'description' => 'Kompor gas portable kecil, cocok untuk memasak di gunung.',
+                'category' => 'Masak',
+                'url_image' => 'https://www.produkbarangunikchina.com/image-product/img6339-1554087837.jpg',
+                'rental_price_per_day' => 15000,
+                'sale_price' => 180000,
+                'rental_stock' => 8,
+                'sale_stock' => 5,
+                'penalty_per_days' => 5000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 5,
+                'item_name' => 'Trekking Pole',
+                'description' => 'Trekking pole bahan aluminium, adjustable, ada shock absorber.',
+                'category' => 'Trekking',
+                'url_image' => 'https://contents.mediadecathlon.com/p2675317/k$165e2ff61292e39f99e3e1f90ebf0d3d/trekking-pole-mt100-comfort-penyesuaian-mudah-hitam-forclaz-8493796.jpg',
+                'rental_price_per_day' => 10000,
+                'sale_price' => 220000,
+                'rental_stock' => 12,
+                'sale_stock' => 6,
+                'penalty_per_days' => 4000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 6,
+                'item_name' => 'Headlamp LED Waterproof',
+                'description' => 'Headlamp LED dengan 3 mode, tahan air, cocok untuk pendakian malam.',
+                'category' => 'Aksesoris',
+                'url_image' => 'https://id-live-01.slatic.net/p/4058d2f32892d1647e4a195f54188830.jpg',
+                'rental_price_per_day' => 15000,
+                'sale_price' => 175000,
+                'rental_stock' => 15,
+                'sale_stock' => 5,
+                'penalty_per_days' => 5000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 7,
+                'item_name' => 'Matras Gulung Outdoor',
+                'description' => 'Matras gulung busa tebal, nyaman untuk alas tidur di tenda.',
+                'category' => 'Matras',
+                'url_image' => 'https://img.lazcdn.com/g/p/175ebf3602a73aee959b419771944089.jpg_720x720q80.jpg',
+                'rental_price_per_day' => 10000,
+                'sale_price' => 120000,
+                'rental_stock' => 12,
+                'sale_stock' => 6,
+                'penalty_per_days' => 4000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 8,
+                'item_name' => 'Lampu Tenda Rechargeable',
+                'description' => 'Lampu tenda LED rechargeable, bisa digantung di dalam tenda.',
+                'category' => 'Penerangan',
+                'url_image' => 'https://hikenrun.com/cdn/shop/files/polos_4_e3c022b3-4184-4887-9672-4d747fb86903.png?v=1755585133',
+                'rental_price_per_day' => 12000,
+                'sale_price' => 160000,
+                'rental_stock' => 10,
+                'sale_stock' => 4,
+                'penalty_per_days' => 5000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 9,
+                'item_name' => 'Nesting Set 3 Pcs',
+                'description' => 'Paket nesting 3 pcs aluminium untuk masak saat camping.',
+                'category' => 'Masak',
+                'url_image' => 'https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//catalog-image/117/MTA-99792549/brd-44261_cooking-set-nesting-sy-300-bulet_full05.jpg',
+                'rental_price_per_day' => 15000,
+                'sale_price' => 200000,
+                'rental_stock' => 8,
+                'sale_stock' => 4,
+                'penalty_per_days' => 6000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 10,
+                'item_name' => 'Hammock',
+                'description' => 'Hammock single dengan tali paracord, nyaman untuk bersantai di camping ground.',
+                'category' => 'Hammock',
+                'url_image' => 'https://antarestar.com/wp-content/uploads/2020/08/Hammock-Double-Colour-1.png',
+                'rental_price_per_day' => 20000,
+                'sale_price' => 230000,
+                'rental_stock' => 7,
+                'sale_stock' => 3,
+                'penalty_per_days' => 7000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 11,
+                'item_name' => 'Raincoat Poncho Outdoor',
+                'description' => 'Jas hujan model poncho yang bisa dijadikan flysheet darurat.',
+                'category' => 'Raincoat',
+                'url_image' => 'https://3fulgear.com/wp-content/uploads/2025/03/poncho-zipper-600x600.jpg',
+                'rental_price_per_day' => 12000,
+                'sale_price' => 180000,
+                'rental_stock' => 10,
+                'sale_stock' => 5,
+                'penalty_per_days' => 5000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 12,
+                'item_name' => 'Meja Lipat Camping',
+                'description' => 'Meja lipat aluminium ringan, mudah dibawa dan dirakit.',
+                'category' => 'Furniture',
+                'url_image' => 'https://img.lazcdn.com/g/p/f30ba2cfd6ccfcea67bd8e8f5a90072f.jpg_720x720q80.jpg',
+                'rental_price_per_day' => 25000,
+                'sale_price' => 450000,
+                'rental_stock' => 5,
+                'sale_stock' => 2,
+                'penalty_per_days' => 9000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 13,
+                'item_name' => 'Kursi Lipat Camping',
+                'description' => 'Kursi lipat dengan sandaran, cocok untuk camping dan memancing.',
+                'category' => 'Furniture',
+                'url_image' => 'https://hikenrun.com/cdn/shop/files/polos_2eae9c5e-20b6-4cb9-a79f-ea980e96852d.png?v=1754879188',
+                'rental_price_per_day' => 20000,
+                'sale_price' => 300000,
+                'rental_stock' => 8,
+                'sale_stock' => 4,
+                'penalty_per_days' => 8000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 14,
+                'item_name' => 'Botol Minum Stainless 1L',
+                'description' => 'Botol minum stainless 1 liter, menjaga suhu lebih stabil.',
+                'category' => 'Botol',
+                'url_image' => 'https://cf.shopee.co.id/file/id-11134207-8224y-mghfzyqjdde3cd',
+                'rental_price_per_day' => 8000,
+                'sale_price' => 140000,
+                'rental_stock' => 20,
+                'sale_stock' => 10,
+                'penalty_per_days' => 3000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 15,
+                'item_name' => 'Water Bladder 2L',
+                'description' => 'Bladder 2 liter untuk dimasukkan ke dalam carrier, lengkap dengan selang minum.',
+                'category' => 'Hidrasi',
+                'url_image' => 'https://www.haimont.com/cdn/shop/files/TPU_Soft_Reservoir_2L_1-1.jpg?v=1757142384',
+                'rental_price_per_day' => 12000,
+                'sale_price' => 220000,
+                'rental_stock' => 10,
+                'sale_stock' => 5,
+                'penalty_per_days' => 5000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 16,
+                'item_name' => 'Sepatu Gunung Pria',
+                'description' => 'Sepatu gunung untuk pria, sol anti-slip dan nyaman untuk trekking panjang.',
+                'category' => 'Sepatu',
+                'url_image' => 'https://d1yutv2xslo29o.cloudfront.net/product/variant/media/web/910005160_BLACK_4_73f5.webp',
+                'rental_price_per_day' => 35000,
+                'sale_price' => 750000,
+                'rental_stock' => 6,
+                'sale_stock' => 3,
+                'penalty_per_days' => 12000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 17,
+                'item_name' => 'Sepatu Gunung Wanita',
+                'description' => 'Sepatu gunung untuk wanita, desain ergonomis dan ringan.',
+                'category' => 'Sepatu',
+                'url_image' => 'https://d1yutv2xslo29o.cloudfront.net/product/photo/910003747_124a.jpg',
+                'rental_price_per_day' => 35000,
+                'sale_price' => 750000,
+                'rental_stock' => 6,
+                'sale_stock' => 3,
+                'penalty_per_days' => 12000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 18,
+                'item_name' => 'Gaiter Anti Lumpur',
+                'description' => 'Gaiter melindungi kaki dari lumpur dan pasir saat trekking.',
+                'category' => 'Aksesoris',
+                'url_image' => 'https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full//catalog-image/MTA-91906567/cozmeed_pelindung_kaki_naik_gunung_waterproof_cozmeed_gaiter_green_full01_e4aqyot0.jpg',
+                'rental_price_per_day' => 10000,
+                'sale_price' => 160000,
+                'rental_stock' => 12,
+                'sale_stock' => 6,
+                'penalty_per_days' => 4000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 19,
+                'item_name' => 'Sarung Tangan Outdoor',
+                'description' => 'Sarung tangan outdoor full finger, grip kuat dan hangat.',
+                'category' => 'Aksesoris',
+                'url_image' => 'https://areioutdoorgear.co.id/wp-content/uploads/2022/12/WhatsApp-Image-2023-05-23-at-15.22.41.jpeg',
+                'rental_price_per_day' => 8000,
+                'sale_price' => 90000,
+                'rental_stock' => 15,
+                'sale_stock' => 8,
+                'penalty_per_days' => 3000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 20,
+                'item_name' => 'Kompor Spiritus Mini',
+                'description' => 'Kompor spiritus mini yang ringan, cocok untuk ultralight hiking.',
+                'category' => 'Masak',
+                'url_image' => 'https://hikenrun.com/cdn/shop/files/sg-11134201-7rd5c-lv01da1w0iqjc4.jpg?v=1754877364',
+                'rental_price_per_day' => 15000,
+                'sale_price' => 210000,
+                'rental_stock' => 7,
+                'sale_stock' => 3,
+                'penalty_per_days' => 6000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 1,
+                'created_at' => null,
+                'updated_at' => null,
+            ],
+            [
+                'item_id' => 21,
+                'item_name' => 'Jaket Mandala ANTARARESTAR',
+                'description' => 'Hadir sebagai versi pengembangan lebih lanjut dari Manusela–sang pendahulunya, Mandala siap menemani langkahmu untuk menyongsong petualangan yang kamu impikan.',
+                'category' => 'Jaket',
+                'url_image' => 'https://antarestar.com/wp-content/uploads/2024/09/id-11134207-7rbk3-m6kp8kkk3bxm6a.jpeg',
+                'rental_price_per_day' => 30000,
+                'sale_price' => 0,
+                'rental_stock' => 0,
+                'sale_stock' => 0,
+                'penalty_per_days' => 5000.00,
+                'is_rentable' => 1,
+                'is_sellable' => 0,
+                'created_at' => '2025-11-24 03:05:06',
+                'updated_at' => '2025-11-24 03:05:06',
+            ],
+        ];
 
-$items = [
-    // ============================
-    // 1. HANYA BISA DISEWA
-    // ============================
+        foreach ($items as $item) {
+            $payload = $item;
+            $payload['created_at'] = $item['created_at'] ?? now();
+            $payload['updated_at'] = $item['updated_at'] ?? now();
 
-    // Tenda
-    ['item_name' => 'Tenda Dome Consina 4 Orang Double Layer', 'category' => 'Tenda', 'url_image' => $url, 'rental_price_per_day' => 85000, 'sale_price' => null, 'rental_stock' => 18, 'sale_stock' => 0, 'penalty_per_days' => 60000, 'is_rentable' => true,  'is_sellable' => false],
-    ['item_name' => 'Flysheet 3x4m Waterproof',                 'category' => 'Tenda', 'url_image' => $url, 'rental_price_per_day' => 35000, 'sale_price' => null, 'rental_stock' => 22, 'sale_stock' => 0, 'penalty_per_days' => 25000, 'is_rentable' => true,  'is_sellable' => false],
-
-    // Tas
-    ['item_name' => 'Carrier Rei Arei 60L + Raincover',         'category' => 'Tas', 'url_image' => $url, 'rental_price_per_day' => 55000, 'sale_price' => null, 'rental_stock' => 20, 'sale_stock' => 0, 'penalty_per_days' => 40000, 'is_rentable' => true,  'is_sellable' => false],
-    ['item_name' => 'Daypack Eiger Pacet 25L',                  'category' => 'Tas', 'url_image' => $url, 'rental_price_per_day' => 35000, 'sale_price' => 590000, 'rental_stock' => 15, 'sale_stock' => 6, 'penalty_per_days' => 25000, 'is_rentable' => true,  'is_sellable' => true],
-
-    // Sleeping Bag
-    ['item_name' => 'Sleeping Bag Naturehike -5°C',             'category' => 'Sleeping Bag', 'url_image' => $url, 'rental_price_per_day' => 40000, 'sale_price' => null, 'rental_stock' => 25, 'sale_stock' => 0, 'penalty_per_days' => 30000, 'is_rentable' => true,  'is_sellable' => false],
-
-    // Alat Masak
-    ['item_name' => 'Kompor Windproof + Gas 230g',              'category' => 'Alat Masak', 'url_image' => $url, 'rental_price_per_day' => 30000, 'sale_price' => null, 'rental_stock' => 30, 'sale_stock' => 0, 'penalty_per_days' => 20000, 'is_rentable' => true,  'is_sellable' => false],
-
-    // Perlengkapan
-    ['item_name' => 'Headlamp Naturehike 300 Lumen',            'category' => 'Perlengkapan', 'url_image' => $url, 'rental_price_per_day' => 22000, 'sale_price' => null, 'rental_stock' => 35, 'sale_stock' => 0, 'penalty_per_days' => 15000, 'is_rentable' => true,  'is_sellable' => false],
-    ['item_name' => 'P3K Standar Pendakian Lengkap',            'category' => 'Perlengkapan', 'url_image' => $url, 'rental_price_per_day' => 25000, 'sale_price' => null, 'rental_stock' => 28, 'sale_stock' => 0, 'penalty_per_days' => 18000, 'is_rentable' => true,  'is_sellable' => false],
-    ['item_name' => 'Lampu Tenda Naturehike 1000 Lumen',        'category' => 'Perlengkapan', 'url_image' => $url, 'rental_price_per_day' => 25000, 'sale_price' => null, 'rental_stock' => 32, 'sale_stock' => 0, 'penalty_per_days' => 18000, 'is_rentable' => true,  'is_sellable' => false],
-    ['item_name' => 'Trekking Pole Consina Anti-Shock',         'category' => 'Perlengkapan', 'url_image' => $url, 'rental_price_per_day' => 30000, 'sale_price' => 420000, 'rental_stock' => 20, 'sale_stock' => 8, 'penalty_per_days' => 20000, 'is_rentable' => true,  'is_sellable' => true],
-    ['item_name' => 'Headlamp Naturehike 300 Lumen',            'category' => 'Perlengkapan', 'url_image' => $url, 'rental_price_per_day' => 22000, 'sale_price' => null, 'rental_stock' => 35, 'sale_stock' => 0, 'penalty_per_days' => 15000, 'is_rentable' => true,  'is_sellable' => false],
-
-    // ============================
-    // 2. HANYA BISA DIBELI
-    // ============================
-
-    ['item_name' => 'Buff Multifungsi Consina Original',         'category' => 'Buff', 'url_image' => $url, 'rental_price_per_day' => null, 'sale_price' => 65000, 'rental_stock' => 0, 'sale_stock' => 80, 'penalty_per_days' => 0, 'is_rentable' => false, 'is_sellable' => true],
-    ['item_name' => 'Tumbler Stainless 500ml Consina',           'category' => 'Perlengkapan', 'url_image' => $url, 'rental_price_per_day' => null, 'sale_price' => 135000, 'rental_stock' => 0, 'sale_stock' => 50, 'penalty_per_days' => 0, 'is_rentable' => false, 'is_sellable' => true],
-    ['item_name' => 'Kaos Kaki Gunung Eiger Anti Blister',       'category' => 'Perlengkapan', 'url_image' => $url, 'rental_price_per_day' => null, 'sale_price' => 89000, 'rental_stock' => 0, 'sale_stock' => 120, 'penalty_per_days' => 0, 'is_rentable' => false, 'is_sellable' => true],
-
-    // ============================
-    // 3. BISA DISEWA & DIBELI
-    // ============================
-
-    // Sepatu
-    ['item_name' => 'Sepatu Gunung Eiger Oblivion Mid',          'category' => 'Sepatu', 'url_image' => $url, 'rental_price_per_day' => 75000, 'sale_price' => 1399000, 'rental_stock' => 10, 'sale_stock' => 5, 'penalty_per_days' => 50000, 'is_rentable' => true,  'is_sellable' => true],
-    ['item_name' => 'Gaiter Anti Lumpur Consina',                'category' => 'Sepatu', 'url_image' => $url, 'rental_price_per_day' => null, 'sale_price' => 175000, 'rental_stock' => 0, 'sale_stock' => 40, 'penalty_per_days' => 0, 'is_rentable' => false, 'is_sellable' => true],
-
-    // Jaket
-    ['item_name' => 'Jaket Gunung Consina Avalanche',            'category' => 'Jaket', 'url_image' => $url, 'rental_price_per_day' => 70000, 'sale_price' => 990000, 'rental_stock' => 12, 'sale_stock' => 4, 'penalty_per_days' => 50000, 'is_rentable' => true,  'is_sellable' => true],
-
-    // Raincoat
-    ['item_name' => 'Raincoat Ponco Multifungsi',                'category' => 'Raincoat', 'url_image' => $url, 'rental_price_per_day' => 20000, 'sale_price' => 185000, 'rental_stock' => 25, 'sale_stock' => 15, 'penalty_per_days' => 15000, 'is_rentable' => true,  'is_sellable' => true],
-
-    // Sandal
-    ['item_name' => 'Sandal Gunung Eiger Caldera',               'category' => 'Sandal', 'url_image' => $url, 'rental_price_per_day' => null, 'sale_price' => 375000, 'rental_stock' => 0, 'sale_stock' => 30, 'penalty_per_days' => 0, 'is_rentable' => false, 'is_sellable' => true],
-    ['item_name' => 'Sandal Gunung Hokben ',               'category' => 'Sandal', 'url_image' => $url, 'rental_price_per_day' => null, 'sale_price' => 375000, 'rental_stock' => 0, 'sale_stock' => 30, 'penalty_per_days' => 0, 'is_rentable' => false, 'is_sellable' => true],
-];
-
-foreach ($items as $data) {
-    Item::updateOrCreate(
-        ['item_name' => $data['item_name']],
-        array_merge($data, [
-            'description' => $data['item_name'] . ' – Kualitas premium, siap pakai untuk pendakian gunung di Jawa & luar Jawa.',
-        ])
-    );
-}
-
-$this->command->info('Item seed dijalankan tanpa membuat data duplikat.');
-
+            // Keep catalog consistent when rerunning the seeder.
+            DB::table('items')->updateOrInsert(
+                ['item_id' => $item['item_id']],
+                $payload
+            );
+        }
     }
 }

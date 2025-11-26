@@ -91,7 +91,7 @@
                         const message = document.getElementById('message').value;
                         
                         const fullName = `${firstName} ${lastName}`;
-                        const phoneNumber = '6285742341424'; // Nomor WhatsApp Jatilawang Adventure
+                        const phoneNumber = '6282219033938'; // Nomor WhatsApp Jatilawang Adventure
                         
                         // Template pesan otomatis
                         const text = `Halo Jatilawang Adventure!%0A%0A` +
